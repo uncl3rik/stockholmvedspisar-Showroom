@@ -21,7 +21,7 @@ pnpm build
 
 ## Content and architecture
 
-`src/data/showroom.ts` combines twelve retailer model families (28 executions, 72 registered material configurations) with five manufacturer insert families, four design settings, four showroom scenes, and a media library. IDs remain stable independently of slugs. Specs have a source URL and retrieval date. Missing SKUs and units remain unknown and are exposed under “Uppgifter att komplettera”. Family-level media never implies an exact variant match.
+`src/data/showroom.ts` combines twelve retailer model families (28 executions, 72 registered material configurations) with five manufacturer insert families, two design settings, two showroom scenes, and a media library. IDs remain stable independently of slugs. Specs have a source URL and retrieval date. Missing SKUs and units remain unknown and are exposed under “Uppgifter att komplettera”. Family-level media never implies an exact variant match.
 
 Routes: `/showroom`, `/showroom/[slug]`, `/kollektion`, `/kollektion/[slug]`, `/om-kratki-pro`, `/kontakt`. Previous generic-store routes redirect to the new showroom. Legacy concept products and other manufacturers are no longer in the rendered experience.
 

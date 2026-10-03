@@ -31,7 +31,7 @@ export default function VariantExplorer({variants, modelSlug}:{variants:ProductV
         <p className="specs-note">Källa: {variant.sourceName || 'Kratki'}, hämtad {variant.verifiedOn}. Mått avser produkten, inte installationsutrymmet. Garantivillkor framgår av källan.</p>
         <a className="line-link" href={variant.sourceUrl} target="_blank" rel="noreferrer">Produktuppgifter hos {variant.sourceName || 'Kratki'} ↗</a>
         {variant.documentLinks?.map(link => <a className="line-link document-link" href={link.url} key={link.url} target="_blank" rel="noreferrer">{link.label} ↗</a>)}
-        <Link className="button dark variant-advice" href={`/kontakt?modell=${modelSlug}&variant=${variant.id}${configuration ? `&konfiguration=${configuration.id}` : ''}`}>Prata om {variant.name} ↗</Link>
+        <Link className="button dark variant-advice" href={`/kontakt?modell=${modelSlug}&variant=${variant.id}${configuration ? `&konfiguration=${configuration.id}` : ''}`}>Fråga om {variant.name} ↗</Link>
       </article>
     </div>
   </div>;

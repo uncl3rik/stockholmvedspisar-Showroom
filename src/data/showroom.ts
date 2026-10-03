@@ -43,14 +43,10 @@ export const variants:ProductVariant[]=[
 export const settings:DesignSetting[]=[
   {id:'setting-dark',modelId:'model-mb',placement:'Integrerad hörneldstad',materials:[{name:'Mörk keramik',color:'#2c454a'},{name:'Trä',color:'#947c60'},{name:'Svart stål',color:'#242525'}],description:'Mörka keramiska ytor och en lång träbänk ger eldstaden en självklar plats i rummet. En gestaltning där kontrasten mellan eld och material får bära uttrycket.'},
   {id:'setting-light',modelId:'model-nb',placement:'Tresidigt glas i öppen planlösning',materials:[{name:'Ljus puts',color:'#c3bcad'},{name:'Natursten',color:'#91897b'},{name:'Svart stål',color:'#242525'}],description:'En ljus, vertikal volym möter den horisontella brasan. Tre glasytor öppnar upp elden mot rummet och låter den upplevas från flera håll.'},
-  {id:'setting-corner',modelId:'model-vn',placement:'Hörnplacering vid sällskapsytan',materials:[{name:'Varmvit puts',color:'#dad7cf'},{name:'Ek',color:'#af8c64'},{name:'Textil',color:'#98958e'}],description:'Eldstaden ligger nära rummets rörelse, mellan vardagsliv och stillhet. Ljus omramning och trä låter elden ta plats utan att hela rummet behöver följa samma färg.'},
-  {id:'setting-object',modelId:'model-sven',placement:'Fristående i vardagsrummet',materials:[{name:'Svart stål',color:'#242525'},{name:'Trä',color:'#bc9c74'},{name:'Varm puts',color:'#c5b9a4'}],description:'Ett fristående objekt bland mjuka textilier och naturliga material. Den rundade fronten för in en annan linje i rummets raka arkitektur.'},
 ];
 export const showroomScenes:ShowroomScene[]=[
   {id:'scene-dark',slug:'mork-materialitet',name:'Mörk materialitet',subtitle:'Eld, keramik och trä.',description:'En eldstad med lika mycket närvaro när brasan har slocknat.',assetIds:['mb-room'],settingId:'setting-dark',mood:'Kontrastrik',room:'Öppen planlösning'},
   {id:'scene-light',slug:'ljus-arkitektur',name:'Ljus arkitektur',subtitle:'En brasa. Fler perspektiv.',description:'Elden som en öppen mittpunkt i ett ljust hem.',assetIds:['nb-room'],settingId:'setting-light',mood:'Avskalad',room:'Vardagsrum'},
-  {id:'scene-corner',slug:'det-oppna-hornet',name:'Det öppna hörnet',subtitle:'Mellan rum och rörelse.',description:'En integrerad eldstad som följer hemmets linjer.',assetIds:['vn-room'],settingId:'setting-corner',mood:'Naturlig',room:'Vardagsrum'},
-  {id:'scene-object',slug:'en-egen-plats',name:'En egen plats',subtitle:'Mjuka former. Levande värme.',description:'En fristående kamin i ett rum att landa i.',assetIds:['sven-room'],settingId:'setting-object',mood:'Ombonad',room:'Vardagsrum'},
 ];
 export const getAsset=(id:string)=>{const a=mediaAssets.find(a=>a.id===id);if(!a)throw new Error(`Unknown asset: ${id}`);return a};
 export const getModel=(id:string)=>{const m=models.find(m=>m.id===id);if(!m)throw new Error(`Unknown model: ${id}`);return m};
