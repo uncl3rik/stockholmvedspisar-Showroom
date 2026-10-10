@@ -8,7 +8,7 @@ export default function MediaViewer({assetIds, scope='family'}:{assetIds:string[
   const panelId = useId();
   const asset = getAsset(selected);
   return <div className="viewer">
-    <div id={panelId} className="viewer-image"><ShowroomImage assetId={selected} priority/></div>
+    <div id={panelId} className="viewer-image"><ShowroomImage assetId={selected}/></div>
     {assetIds.length > 1 && <div className="viewer-controls gallery-controls" role="group" aria-label="Välj bildvy">{assetIds.map((id, index) => {
       const image = getAsset(id);
       return <button key={id} aria-pressed={selected === id} aria-controls={panelId} aria-label={`${image.viewLabel || (image.kind === 'render' ? 'I rummet' : 'Produktvy')} ${index + 1}`} onClick={() => setSelected(id)}><ShowroomImage assetId={id} sizes="80px"/><span>{image.viewLabel || (image.kind === 'render' ? 'I rummet' : 'Produktvy')}</span></button>;

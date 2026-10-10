@@ -29,6 +29,14 @@ Routes: `/showroom`, `/showroom/[slug]`, `/kollektion`, `/kollektion/[slug]`, `/
 
 `src/app/globals.css` defines design tokens and layouts. Keep typography, surfaces, spacing, focus treatment and mobile behavior consistent; allow scenes to have individual compositions. Replace the data module with a CMS repository later without coupling CMS objects to page layout.
 
+## Visual product selection
+
+Product pages lead with the execution, exact configuration image and touch-friendly material choices. The selector covers the 72 registered combinations across 26 executions; executions without registered combinations show a clearly labelled reference image. Changing one material preserves the other selected attributes and only permits a recorded combination. Selection logic lives in `src/lib/configuration.ts`, separately from the renderer.
+
+`variant` and `konfiguration` URL parameters restore a selection and carry it into the demo contact form. Unknown or mismatched IDs fall back to a valid selection. The image gallery and enlarged image mount only when opened. On mobile the preview stays visible while selecting, except on short screens; technical information sits in disclosures. Collection search appears before the horizontally scrollable mobile filters.
+
+Run `node --experimental-strip-types --test scripts/configuration.test.mjs` with Node 22.6+ to check selection integrity, all 72 image associations, preservation of other choices, invalid links and unavailable combinations. This checks the imported snapshot, not current stock or installation compatibility. Accessories such as floor plates and flue packages need a separate compatibility/asset mapping before being visualized. Future 3D can use the same selected configuration ID.
+
 ## Demo contact flow
 
 The contact route always renders with `configured={false}`, even if webhook variables exist. It validates inputs locally and demonstrates a confirmation without uploading or sending data. Model, variant and scene context is carried in verified URL parameters. No delivery API is exposed. Before activating real enquiries, implement the chosen provider, abuse protection and a production privacy policy.
