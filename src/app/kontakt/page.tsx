@@ -1,5 +1,14 @@
-import { Intro,ShowroomImage } from '@/components/showroom';
+import { Intro, ShowroomImage } from '@/components/showroom';
 import QuoteForm from '@/components/quote-form';
-import { models,variants,showroomScenes } from '@/data/showroom';
-export const metadata={title:'Kontakt',description:'Kontaktformulär för frågor om Kratki Pro. Formuläret är en demo och skickar inga uppgifter.'};
-export default async function Page({searchParams}:{searchParams:Promise<{modell?:string;variant?:string;miljo?:string;konfiguration?:string}>}){const q=await searchParams;const model=models.find(m=>m.slug===q.modell);const variant=variants.find(v=>v.id===q.variant&&v.modelId===model?.id);const configuration=variant?.configurations?.find(c=>c.id===q.konfiguration);const configurationLabel=configuration?Object.entries(configuration.attributes).map(([key,value])=>{const option=variant?.options?.find(o=>o.key===key);return (option?.name||key)+': '+(option?.values.find(v=>v.value===value)?.label||value)}).join(' · '):null;const scene=showroomScenes.find(s=>s.slug===q.miljo);const context=[model?`Kratki Pro ${model.name}`:null,variant?`${variant.name}${variant.sku?` (${variant.sku})`:''}`:null,configurationLabel,scene?`miljön ${scene.name}`:null].filter(Boolean).join(' · ');return <><Intro label="KONTAKT" title="Frågor om Kratki Pro." description="Här finns ett formulär för frågor om modeller och placering. Det är en demo och skickar inga uppgifter."/><div className="quote-layout shell"><aside className="quote-aside"><ShowroomImage assetId={configuration?.assetId||variant?.assetIds[0]||model?.coverAssetId||'sven-room'}/><h2>Modell<br/>och rum.</h2><p>Ange gärna vilken modell frågan gäller och hur du tänker placera den.</p>{context&&<div className="context-note"><p className="eyebrow" style={{marginBottom:8}}>DITT VAL</p><p>{context}</p></div>}<p className="quiet">Formuläret är en demo. Inga uppgifter eller bilder skickas.</p></aside><QuoteForm context={context} configured={false}/></div></>}
+import { models, variants, showroomScenes } from '@/data/showroom';
+import { configurationLabel } from '@/lib/configuration';
+export const metadata={title:'Kontakt',description:'Frågor om kaminer, insatser och materialval från Kratki Pro. Kontaktformuläret är en demo.'};
+export default async function Page({searchParams}:{searchParams:Promise<{modell?:string;variant?:string;miljo?:string;konfiguration?:string}>}) {
+  const q=await searchParams;
+  const model=models.find(m=>m.slug===q.modell);
+  const variant=variants.find(v=>v.id===q.variant&&v.modelId===model?.id);
+  const configuration=variant?.configurations?.find(c=>c.id===q.konfiguration);
+  const scene=showroomScenes.find(s=>s.slug===q.miljo);
+  const context=[model?'Kratki Pro '+model.name:null,variant?variant.name:null,variant?configurationLabel(variant,configuration):null,scene?.name].filter(Boolean).join(' · ');
+  return <><Intro label="KONTAKT / STOCKHOLM VEDSPISAR" title="Vilken kamin är din?" description="Frågor om en modell, ett material eller ett utförande? Här samlar vi dina val."/><div className="quote-layout shell"><aside className="quote-aside"><ShowroomImage assetId={configuration?.assetId||variant?.assetIds[0]||model?.coverAssetId||'sven-room'}/><h2>Modellen.<br/>Materialet.<br/>Detaljerna.</h2><p>Du behöver inte ha bestämt dig. Börja med den modell eller det uttryck du är nyfiken på.</p>{context&&<div className="context-note"><p className="eyebrow">DITT VAL</p><p>{context}</p></div>}</aside><QuoteForm key={context} context={context}/></div></>;
+}

@@ -1,7 +1,17 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { AdviceCTA,Arrow,Heading,SceneCard,ShowroomImage } from '@/components/showroom';
-import { showroomScenes,getSetting,getModel } from '@/data/showroom';
+import { Intro, Arrow, SceneCard } from '@/components/showroom';
+import { showroomScenes } from '@/data/showroom';
+
 export function generateStaticParams(){return showroomScenes.map(s=>({slug:s.slug}))}
-export async function generateMetadata({params}:{params:Promise<{slug:string}>}){const {slug}=await params;const s=showroomScenes.find(s=>s.slug===slug);return {title:s?`${s.name} — Kratki Pro showroom`:'Miljön finns inte',description:s?.description}}
-export default async function Page({params}:{params:Promise<{slug:string}>}){const {slug}=await params;const scene=showroomScenes.find(s=>s.slug===slug);if(!scene)notFound();const setting=getSetting(scene.settingId);const model=getModel(setting.modelId);return <><nav className="breadcrumb shell" aria-label="Brödsmulor"><Link href="/">Hem</Link><span>/</span><Link href="/showroom">Showroom</Link><span>/</span><span>{scene.name}</span></nav><section className="scene-detail-hero"><div className="scene-detail-copy"><p className="eyebrow">KRATKI PRO / {model.name}</p><h1>{scene.name}.</h1><p>{scene.description}</p><a href="#gestaltning" className="line-link light-link">Om miljön ↓</a><span className="scene-detail-index">{scene.room.toUpperCase()} / {scene.mood.toUpperCase()}</span></div><div className="scene-detail-image"><ShowroomImage assetId={scene.assetIds[0]} priority/></div></section><div className="shell"><section id="gestaltning" className="detail-section"><div><p className="eyebrow" style={{marginBottom:20}}>RUMMETS UTTRYCK</p><h2>{scene.subtitle}</h2></div><div><p>{setting.description}</p><div className="material-palette" aria-label="Materialinspiration">{setting.materials.map(m=><span className="material-swatch" key={m.name}><i aria-hidden="true" style={{background:m.color}}/>{m.name}</span>)}</div><p className="media-credit">Materialpaletten är en tolkning av bilden. Den anger inte exakta material eller utföranden.</p></div></section><section className="detail-section"><h2>Placering & proportioner.</h2><div><p>{setting.placement}. Placeringen påverkar varifrån elden syns och hur eldstaden möter möbleringen.</p><p className="specs-note">Omramning, avstånd och installation behöver planeras för den exakta modellen och ditt hems förutsättningar.</p></div></section><section className="scene-associated"><ShowroomImage assetId={model.assetIds.find(id=>id.endsWith('product'))||model.coverAssetId}/><div><p className="eyebrow">MODELLSERIEN</p><h2>{model.name}</h2><p>{model.tagline}</p><p>{model.description}</p><Link href={`/kollektion/${model.slug}`} className="button dark">Visa {model.name} <Arrow/></Link><p className="media-credit">Tillverkarens miljö visar serien. Den exakta varianten i visualiseringen är inte fastställd.</p></div></section></div><AdviceCTA model={model.slug} scene={scene.slug}/><section className="showroom-section shell"><Heading label="SHOWROOM" title="Fler miljöer."/><div className="scene-grid">{showroomScenes.filter(s=>s.id!==scene.id).slice(0,2).map((s,i)=><SceneCard key={s.id} scene={s} index={i}/>)}</div></section></>}
+export async function generateMetadata({params}:{params:Promise<{slug:string}>}){
+  const {slug}=await params;
+  const scene=showroomScenes.find(s=>s.slug===slug);
+  return {title:scene ? scene.name+' — Showroom' : 'Miljön finns inte'};
+}
+export default async function Page({params}:{params:Promise<{slug:string}>}){
+  const {slug}=await params;
+  const scene=showroomScenes.find(s=>s.slug===slug);
+  if(!scene)notFound();
+  return <><Intro label="SHOWROOM / UNDER UTVECKLING" title={scene.name} description="Här tar nästa showroom form."/><section className="shell page-content"><Link href="/kollektion" className="line-link">Utforska kaminerna <Arrow/></Link><div className="scene-grid scene-next">{showroomScenes.filter(s=>s.id!==scene.id).map((s)=><SceneCard key={s.id} scene={s} index={showroomScenes.indexOf(s)}/>)}</div></section></>;
+}

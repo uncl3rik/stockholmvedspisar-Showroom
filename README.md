@@ -1,4 +1,4 @@
-# Stockholm Vedspisar .se — Kratki Pro showroom
+# Stockholm Vedspisar .se — Kratki Pro shop & showroom
 
 The new stockholmvedspisar.se project, built with Next.js App Router, TypeScript, React and Tailwind CSS. The existing published stockholmvedspisar.shop site remains separate and unchanged. No redirect from .shop is planned.
 
@@ -23,11 +23,11 @@ pnpm build
 
 `src/data/showroom.ts` combines twelve retailer model families (28 executions, 72 registered material configurations) with five manufacturer insert families, two design settings, two showroom scenes, and a media library. IDs remain stable independently of slugs. Specs have a source URL and retrieval date. Missing SKUs and units remain unknown and are exposed under “Uppgifter att komplettera”. Family-level media never implies an exact variant match.
 
-Routes: `/showroom`, `/showroom/[slug]`, `/kollektion`, `/kollektion/[slug]`, `/om-kratki-pro`, `/kontakt`. Previous generic-store routes redirect to the new showroom. Legacy concept products and other manufacturers are no longer in the rendered experience.
+Routes: `/showroom`, `/showroom/[slug]`, `/kollektion`, `/kollektion/[slug]`, `/om-kratki-pro`, `/kontakt`. Previous generic-store routes redirect to the new showroom. Legacy concept products and other manufacturers are no longer in the rendered experience; the product catalogue is the primary journey.
 
 `src/components/media-viewer.tsx` owns media switching. Route layouts consume asset IDs and do not depend on a renderer. When actual 3D assets arrive, add a lazily loaded renderer at this boundary. `Model3DAsset` defines GLB, exact variant association, meters, Y-up, a version, poster and material slot names. No 3D engine or fake 3D button is included now.
 
-`src/app/globals.css` defines design tokens and layouts. Keep typography, surfaces, spacing, focus treatment and mobile behavior consistent; allow scenes to have individual compositions. Replace the data module with a CMS repository later without coupling CMS objects to page layout.
+`src/app/globals.css` provides base layouts; `src/app/shop-theme.css` owns the current logo-inspired design tokens and shared visual identity. Keep typography, surfaces, spacing, focus treatment and mobile behavior consistent; allow scenes to have individual compositions. Replace the data module with a CMS repository later without coupling CMS objects to page layout.
 
 ## Visual product selection
 
@@ -40,6 +40,12 @@ Run `node --experimental-strip-types --test scripts/configuration.test.mjs` with
 ## Demo contact flow
 
 The contact route always renders with `configured={false}`, even if webhook variables exist. It validates inputs locally and demonstrates a confirmation without uploading or sending data. Model, variant and scene context is carried in verified URL parameters. No delivery API is exposed. Before activating real enquiries, implement the chosen provider, abuse protection and a production privacy policy.
+
+## Product-first identity
+
+The site focuses exclusively on Kratki stoves and inserts. Installation services, service contact details and public distributor affiliation have been removed. The old /installation route redirects to /kollektion. Source URLs remain in internal catalog records for provenance; they are not presented as a business partnership.
+
+The logo-inspired theme in src/app/shop-theme.css uses black, ivory, orange, squared product cards and bold sans-serif typography across every route. The demo contact form collects only name, email and a product question. No checkout or form delivery is connected.
 
 ## Content provenance
 
@@ -54,7 +60,7 @@ Technical data references are recorded per variant. Dimensions are device dimens
 - Variant-specific images and 3D must reference the exact variant ID.
 - Display images as the immediate, accessible fallback; load interactive 3D only on demand.
 - Keep selection and presentation independent of quote delivery and future saved-project storage.
-- Do not add purchase/cart flows; the primary journey is scene → model → advice.
+- Primary journey: catalogue → model → material selection → product enquiry. Checkout requires real prices, stock and an order backend.
 - Preserve keyboard operation, visible focus, reduced motion and responsive layouts.
 
 ## GitHub and Vercel
@@ -78,6 +84,6 @@ The 28 imported executions cover SVEN; REN S/M/L; ERIK, Keramik, Hel Keramik, W 
 
 REN’s corner glazing and KARI’s flexible freestanding use were cross-checked against https://pro.kratki.com/en/products/ on 2026-10-02.
 
-## Ember visual direction
+## Visual direction
 
-Warm charcoal surfaces, ivory text and copper accents form the showroom palette. `FireMark` is decorative inline SVG with slow CSS flame and glow animation. It adds no JavaScript loop, canvas, external media or animation dependency. `prefers-reduced-motion` produces a still flame. Mobile browser chrome and native controls use the dark color scheme; original product images retain a light studio surface.
+The supplied logo is used without alteration. The shared shop theme uses its orange accent with black surfaces, ivory typography and light product-image panels. Styling is mobile-first, with two-column product cards, horizontal filters, SVG icons and keyboard-accessible controls. Reduced-motion preferences are respected.

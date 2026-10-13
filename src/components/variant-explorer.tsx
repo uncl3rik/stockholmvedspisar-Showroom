@@ -1,5 +1,6 @@
 'use client';
 
+import { Arrow, CloseIcon } from './ui-icons';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRef, useState } from 'react';
@@ -64,7 +65,7 @@ export default function VariantExplorer({ variants, modelSlug, fallbackAssetIds,
           {asset && failedImage !== asset.src ? <>
             {loadedImage !== asset.src && <span className="config-loading" aria-hidden="true">Bilden laddas…</span>}
             <Image key={asset.id} src={asset.src} alt={`${variant.name}${selectedLabel ? ` · ${selectedLabel}` : ' · referensbild'}`} fill priority sizes="(max-width: 760px) 88vw, 50vw" onLoad={() => setLoadedImage(asset.src)} onError={() => setFailedImage(asset.src)}/>
-            <button type="button" className="config-zoom" onClick={() => { setZoomOpen(true); zoom.current?.showModal(); }} aria-label="Förstora produktbilden">Förstora <span aria-hidden="true">↗</span></button>
+            <button type="button" className="config-zoom" onClick={() => { setZoomOpen(true); zoom.current?.showModal(); }} aria-label="Förstora produktbilden">Förstora <Arrow/></button>
           </> : <p className="config-no-image">{asset ? 'Bilden kunde inte laddas.' : 'Bild saknas för den här kombinationen.'} Dina val finns kvar.</p>}
         </div>
         <figcaption className="config-caption" aria-live="polite" aria-atomic="true">
@@ -105,8 +106,8 @@ export default function VariantExplorer({ variants, modelSlug, fallbackAssetIds,
 
         <p className="config-help">{configuration ? 'Bilden följer ditt val av material och brännkammare. Kulörer kan upplevas olika på olika skärmar.' : 'Bilderna visar modellserien. Se produktuppgifterna för det angivna utförandet.'}</p>
         <div className="config-actions">
-          <Link className="button dark" href={contactHref}>Fråga om detta val <span aria-hidden="true">↗</span></Link>
-          <button className="line-link" type="button" onClick={copySelection}>Kopiera länk till valet <span aria-hidden="true">↗</span></button>
+          <Link className="button dark" href={contactHref}>Fråga om detta val <Arrow/></Link>
+          <button className="line-link" type="button" onClick={copySelection}>Kopiera länk till valet <Arrow/></button>
           <p className="config-share-status" role="status">{shareStatus}</p>
         </div>
       </div>
@@ -118,9 +119,9 @@ export default function VariantExplorer({ variants, modelSlug, fallbackAssetIds,
         <div className="product-disclosure-body">
           {Boolean(configuration?.sku || variant.sku) && <p className="variant-sku">Artikelnummer: {configuration?.sku || variant.sku}</p>}
           <table className="specs"><caption className="sr-only">Uppgifter för {variant.name}</caption><tbody>{Object.entries(variant.specifications).map(([key, value]) => <tr key={key}><th scope="row">{key}</th><td>{value}</td></tr>)}</tbody></table>
-          <p className="specs-note">Källa: {variant.sourceName || 'Kratki'}, hämtad {variant.verifiedOn}. Mått avser produkten, inte installationsutrymmet. Garantivillkor framgår av källan.</p>
-          <a className="line-link" href={variant.sourceUrl} target="_blank" rel="noreferrer">Produktuppgifter hos {variant.sourceName || 'Kratki'} ↗</a>
-          {variant.documentLinks?.map(link => <a className="line-link document-link" href={link.url} key={link.url} target="_blank" rel="noreferrer">{link.label} ↗</a>)}
+          <p className="specs-note">Produktunderlag kontrollerat {variant.verifiedOn}. Måtten avser själva produkten. Kontrollera även modellens säkerhetsavstånd.</p>
+          {!variant.sourceName && <a className="line-link" href={variant.sourceUrl} target="_blank" rel="noreferrer">Produktuppgifter hos Kratki <Arrow/></a>}
+          {variant.documentLinks?.map(link => <a className="line-link document-link" href={link.url} key={link.url} target="_blank" rel="noreferrer">{link.label} <Arrow/></a>)}
           {Boolean(variant.issues?.length) && <details className="source-details"><summary>Uppgifter att komplettera</summary><ul>{variant.issues!.map(issue => <li key={issue}>{issue}</li>)}</ul></details>}
         </div>
       </details>
@@ -133,7 +134,7 @@ export default function VariantExplorer({ variants, modelSlug, fallbackAssetIds,
     </div>
 
     <dialog ref={zoom} className="config-zoom-dialog" aria-label="Förstorad produktbild" onClose={() => setZoomOpen(false)} onClick={e => { if (e.target === e.currentTarget) zoom.current?.close(); }}>
-      <div className="config-zoom-content"><button type="button" className="config-zoom-close" onClick={() => zoom.current?.close()}>Stäng ×</button>
+      <div className="config-zoom-content"><button type="button" className="config-zoom-close" onClick={() => zoom.current?.close()}>Stäng <CloseIcon/></button>
         {zoomOpen && asset && <div className="config-zoom-image"><Image src={asset.src} alt={`${variant.name} · ${selectedLabel || 'Referensbild'}`} fill sizes="(max-width: 1000px) 90vw, 900px"/></div>}
         <p>{variant.name} {selectedLabel && `· ${selectedLabel}`}</p>
       </div>

@@ -125,3 +125,16 @@
 .hero-product-label div>span{font-family:var(--serif);font-size:2.2rem;line-height:1.1}
 .hero-product-link{display:inline-flex;align-items:center;gap:15px;font-size:.8125rem;white-space:nowrap}
 @media(max-width:760px){.hero-product{height:350px}.hero-product .media-product img{padding:0 0 75px}.hero-product-label{bottom:18px;left:6%;right:6%;padding-top:12px}.hero-product-label .eyebrow{font-size:.625rem;letter-spacing:.08em}.hero-product-label div>span{font-size:1.7rem}.hero-product-link{gap:10px}}
+
+/* Brand artwork and line icons keep the same appearance across mobile platforms. */
+.wordmark{width:174px;height:80px;flex-shrink:0;align-items:center;justify-content:center}
+.brand-logo{display:block;width:100%;height:auto;object-fit:contain}
+.footer-brand{display:inline-flex;width:230px;max-width:100%;margin-bottom:20px}
+.ui-icon{display:inline-block;width:18px;height:18px;flex-shrink:0;vertical-align:middle}
+.button .icon-arrow,.hero-foot .icon-arrow{width:20px;height:20px}
+.icon-menu{width:22px;height:22px}
+.scene-caption>.icon-arrow,.model-caption>.icon-arrow{color:var(--fire);margin-left:auto;margin-top:4px;width:20px;height:20px}
+.hero-foot>a{display:flex;align-items:center;justify-content:center;min-height:44px}
+.footer-bottom>a{display:inline-flex;align-items:center;gap:8px}
+.config-zoom-close{display:flex;align-items:center;gap:8px}
+@media(max-width:760px){.wordmark{width:140px;height:64px}.model-caption>.icon-arrow{width:16px;height:16px;margin-top:3px}.footer-brand{width:210px}}

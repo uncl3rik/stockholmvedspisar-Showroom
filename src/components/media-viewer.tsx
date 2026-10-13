@@ -1,5 +1,6 @@
 'use client';
 import { useId, useState } from 'react';
+import { Arrow } from './ui-icons';
 import { getAsset } from '@/data/showroom';
 import { ShowroomImage } from './showroom';
 /** Images render now; future video/3D renderers belong here, not in route layouts. */
@@ -13,7 +14,7 @@ export default function MediaViewer({assetIds, scope='family'}:{assetIds:string[
       const image = getAsset(id);
       return <button key={id} aria-pressed={selected === id} aria-controls={panelId} aria-label={`${image.viewLabel || (image.kind === 'render' ? 'I rummet' : 'Produktvy')} ${index + 1}`} onClick={() => setSelected(id)}><ShowroomImage assetId={id} sizes="80px"/><span>{image.viewLabel || (image.kind === 'render' ? 'I rummet' : 'Produktvy')}</span></button>;
     })}</div>}
-    <p className="media-credit" aria-live="polite">{asset.kind === 'render' ? 'Miljövisualisering' : asset.kind === 'drawing' ? 'Måttunderlag' : 'Bild'} · <a href={asset.sourceUrl} target="_blank" rel="noreferrer">{asset.credit}</a> · {scope === 'execution' ? 'Material för det valda utförandet. Kulör kan avvika.' : 'Seriens inledande bildvy. Utforska utförandena längre ned.'}</p>
-    {asset.kind === 'drawing' && asset.originalUrl && <a className="line-link" href={asset.originalUrl} target="_blank" rel="noreferrer">Öppna måttunderlaget i original ↗</a>}
+    <p className="media-credit" aria-live="polite">{asset.kind === 'render' ? 'Miljövisualisering' : asset.kind === 'drawing' ? 'Måttunderlag' : 'Bild'} · Kratki Pro · {scope === 'execution' ? 'Material för det valda utförandet. Kulör kan avvika.' : 'Seriens inledande bildvy. Utforska utförandena längre ned.'}</p>
+    {asset.kind === 'drawing' && asset.originalUrl && <a className="line-link" href={asset.originalUrl} target="_blank" rel="noreferrer">Öppna måttunderlaget i original <Arrow/></a>}
   </div>;
 }
