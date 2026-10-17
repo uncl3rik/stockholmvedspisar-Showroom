@@ -1,2 +1,2 @@
 import { redirect } from 'next/navigation';
-export default function Page(){redirect('/showroom')}
+export default function Page(){redirect('/designa')}

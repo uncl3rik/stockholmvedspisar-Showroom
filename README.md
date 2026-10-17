@@ -87,3 +87,9 @@ REN’s corner glazing and KARI’s flexible freestanding use were cross-checked
 ## Visual direction
 
 The supplied logo is used without alteration. The shared shop theme uses its orange accent with black surfaces, ivory typography and light product-image panels. Styling is mobile-first, with two-column product cards, horizontal filters, SVG icons and keyboard-accessible controls. Reduced-motion preferences are respected.
+
+## Current direction: bespoke fireplaces (2026-10-17)
+
+The current public experience supersedes the earlier stove-shop direction above. The current design-sketch catalogue contains only KARI and its eight variants. The main flow is /designa: choose a KARI variant, select square/rectangular enclosure shape and desired top/rear connection, then save room area in m². The old showroom routes redirect there. Source records for the removed freestanding range remain internal.
+
+See DESIGN-FLOW.md for the versioned design contract, URL state, eligibility rules and the implementation boundary for future enclosure geometry, materials and room placement. The design flow remains a sketch. Preferences persist in the URL; measured geometry, construction compatibility, exact room placement, checkout and project storage are not connected.

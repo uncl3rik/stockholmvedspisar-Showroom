@@ -7,6 +7,7 @@ import { useRef, useState } from 'react';
 import { getAsset, type ProductVariant } from '@/data/showroom';
 import { configurationForOption, configurationLabel, initialSelection } from '@/lib/configuration';
 import MediaViewer from './media-viewer';
+import { designHref } from '@/lib/fireplace-design';
 
 type Props = {
   variants: ProductVariant[];
@@ -102,11 +103,11 @@ export default function VariantExplorer({ variants, modelSlug, fallbackAssetIds,
               })}
             </div>
           </fieldset>;
-        }) : <p className="config-help">Inga valbara materialkombinationer finns registrerade för det här utförandet.</p>}
+        }) : <p className="config-help">Detta är insatsens produktutförande. Omramningen utformas separat i nästa steg.</p>}
 
         <p className="config-help">{configuration ? 'Bilden följer ditt val av material och brännkammare. Kulörer kan upplevas olika på olika skärmar.' : 'Bilderna visar modellserien. Se produktuppgifterna för det angivna utförandet.'}</p>
         <div className="config-actions">
-          <Link className="button dark" href={contactHref}>Fråga om detta val <Arrow/></Link>
+          <Link className="button dark" href={designHref('omramning', modelSlug, variant.id)}>Designa med denna insats <Arrow/></Link><Link className="line-link" href={contactHref}>Fråga om insatsen <Arrow/></Link>
           <button className="line-link" type="button" onClick={copySelection}>Kopiera länk till valet <Arrow/></button>
           <p className="config-share-status" role="status">{shareStatus}</p>
         </div>
