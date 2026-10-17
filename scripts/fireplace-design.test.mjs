@@ -13,7 +13,7 @@ const query={modell:'kari',variant:'kari-80',steg:'rum',form:'rektangular',anslu
 const original=resolveDesign(query,models,variants).design;
 const href=designHref('omramning','kari','kari-80',designPreferences(original));
 const restored=resolveDesign(Object.fromEntries(new URL(href,'https://example.com').searchParams),models,variants);
-assert.equal(restored.step,'omramning');assert.deepEqual(restored.design,original);
+assert.equal(restored.step,'utforande');assert.deepEqual(restored.design,original);
 assert.equal(restored.design.enclosure.shape,'rektangular');assert.equal(restored.design.enclosure.flueConnection,'bak');assert.equal(restored.design.room.areaM2,35.5);
 assert.equal(restored.design.enclosure.dimensionsMm,null);assert.equal(restored.design.room.placement,null);
 });

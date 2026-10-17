@@ -1,18 +1,19 @@
+import { conturaAsset, conturaModel, conturaVariant } from './contura-i8';
 import { retailerAssets, retailerModels, retailerVariants } from './kratki-pro/collection';
 /** Content IDs are independent of routes and future CMS storage. */
 export type Glazing = 'front' | 'corner' | 'panorama' | 'round' | 'tunnel';
 export const glazingLabels: Record<Glazing, string> = { front: 'Frontglas', corner: 'Hörnglas', panorama: 'Tresidigt glas', round: 'Rundat glas', tunnel: 'Tunnelglas' };
-export type MediaAsset = { id:string; kind:'render'|'product'|'photo'|'drawing'; src:string; alt:string; credit:string; sourceUrl:string; modelId:string; variantId?:string; focalPoint:string; rights:'permission-confirmed'; originalUrl?:string; viewLabel?:string };
+export type MediaAsset = { id:string; kind:'render'|'product'|'photo'|'drawing'; src:string; alt:string; credit:string; sourceUrl:string; modelId:string; variantId?:string; focalPoint:string; rights:'permission-confirmed'|'manufacturer-source'; originalUrl?:string; viewLabel?:string };
 /** Future 3D assets identify an exact variant, scale and orientation. */
 export type Model3DAsset = { id:string; kind:'model3d'; src:string; variantId:string; configurationId?:string; format:'glb'; version:string; units:'meters'; upAxis:'Y'; posterAssetId:string; materialSlots:string[] };
-export type ProductModel = { id:string; slug:string; name:string; brand:'Kratki Pro'; category:'insert'|'stove'; glazing:Glazing; glazingOptions?:Glazing[]; tagline:string; description:string; designNotes:string[]; coverAssetId:string; assetIds:string[]; variantIds:string[]; sourceUrl:string };
+export type ProductModel = { id:string; slug:string; name:string; brand:'Kratki Pro'|'Contura'; category:'insert'|'stove'; glazing:Glazing; glazingOptions?:Glazing[]; tagline:string; description:string; designNotes:string[]; coverAssetId:string; assetIds:string[]; variantIds:string[]; sourceUrl:string };
 export type ProductVariant = { id:string; modelId:string; name:string; sku:string|null; sourceUrl:string; verifiedOn:string; specifications:Record<string,string>; assetIds:string[]; sourceName?:string; sourceProductId?:string; issues?:string[]; documentLinks?:{label:string;url:string}[]; options?:{name:string;key:string;values:{label:string;value:string}[]}[]; configurations?:{id:string;sourceId:string;sku:string|null;attributes:Record<string,string>;assetId:string|null}[] };
 export type DesignSetting = { id:string; modelId:string; materials:{name:string;color:string}[]; placement:string; description:string; variantId?:string };
 export type ShowroomScene = { id:string; slug:string; name:string; subtitle:string; description:string; assetIds:string[]; settingId:string; mood:string; room:string };
 const manufacturer='https://pro.kratki.com/en/products/';
 const asset=(id:string,file:string,modelId:string,alt:string,kind:MediaAsset['kind']='render'):MediaAsset=>({id,src:`/images/kratki/${file}.webp`,modelId,alt,kind,credit:'Kratki Pro',sourceUrl:manufacturer,focalPoint:'50% 58%',rights:'permission-confirmed'});
 export const mediaAssets:MediaAsset[]=[
-  ...retailerAssets,
+  ...retailerAssets, conturaAsset,
   asset('mb-room','MB_wizualizacja','model-mb','Kratki MB i en mörk kaklad eldstad med träbänk och öppen planlösning'),
   asset('nb-room','nb_wizualizacja','model-nb','Kratki NB med tresidigt glas, ljus omramning och ett ljust vardagsrum'),
   asset('vn-room','vn_wizualizacja','model-vn','Kratki VN integrerad i en ljus vägg i ett vardagsrum'),
@@ -25,7 +26,7 @@ export const mediaAssets:MediaAsset[]=[
   asset('lucy-product','lucy-product','model-lucy','Produktbild av en insats ur Kratki LUCY-serien','product'),
 ];
 export const models:ProductModel[]=[
-  ...retailerModels,
+  ...retailerModels, conturaModel,
   {id:'model-nb',slug:'nb',name:'NB',brand:'Kratki Pro',category:'insert',glazing:'panorama',tagline:'Elden, från fler perspektiv.',description:'Tre glasytor låter elden vara närvarande från flera delar av rummet. NB ger en tydlig utgångspunkt för en eldstad som får stå i centrum av möbleringen.',designNotes:['Eld synlig från tre sidor','En naturlig mittpunkt i öppen planlösning','Omramningen formar det slutliga uttrycket'],coverAssetId:'nb-room',assetIds:['nb-room','nb-product'],variantIds:['variant-nbc-black'],sourceUrl:manufacturer},
   {id:'model-mb',slug:'mb',name:'MB',brand:'Kratki Pro',category:'insert',glazing:'corner',tagline:'En del av arkitekturen.',description:'Låt eldstaden följa rummets linjer. MB-serien bjuder in till integrerade lösningar där glas, omramning och material bildar en sammanhängande helhet.',designNotes:['Hörnet blir en del av upplevelsen','För integrerade, platsbyggda gestaltningar','Material och proportioner sätter tonen'],coverAssetId:'mb-room',assetIds:['mb-room','mb-product'],variantIds:['variant-mbm-right'],sourceUrl:manufacturer},
   {id:'model-vn',slug:'vn',name:'VN',brand:'Kratki Pro',category:'insert',glazing:'corner',tagline:'Ett öppnare hörn.',description:'Hörnglaset ger elden en plats i två riktningar. En ren inramning och lyftlucka gör VN till en intressant utgångspunkt för ett arkitektoniskt uttryck.',designNotes:['Hörnglas med öppen känsla','Lyftlucka i den utvalda varianten','Lika intressant från soffan som från matbordet'],coverAssetId:'vn-room',assetIds:['vn-room','vn-product'],variantIds:['variant-vnl-480'],sourceUrl:manufacturer},
@@ -33,7 +34,7 @@ export const models:ProductModel[]=[
   {id:'model-floki',slug:'floki',name:'FLOKI',brand:'Kratki Pro',category:'insert',glazing:'front',tagline:'En stilla fokuspunkt.',description:'En avskalad omramning gör brasan till rummets blickfång. FLOKI-serien finns med olika glasutföranden, för ett uttryck som kan anpassas till arkitekturen.',designNotes:['Serie med front- och hörnutföranden','Passar en lugn, integrerad gestaltning','Låt omgivande material ge karaktär'],coverAssetId:'floki-room',assetIds:['floki-room'],variantIds:['variant-floki-left'],sourceUrl:manufacturer},
 ];
 export const variants:ProductVariant[]=[
-  ...retailerVariants,
+  ...retailerVariants, conturaVariant,
   {id:'variant-mbm-right',modelId:'model-mb',name:'MBM · höger · böjt glas',sku:'MBM/P/BS/SG',verifiedOn:'2026-10-02',sourceUrl:'https://kratki.com/en/steel-fireplace-kratki-mbm-right-10-kw-o-200-bent-glass-57518',specifications:{'Nominell effekt':'10 kW','Verkningsgrad':'81 %','Bredd × höjd × djup':'775 × 1261 × 492 mm','Vikt':'174 kg','Rökutlopp':'Ø 200 mm','Maximal vedlängd':'50 cm'},assetIds:[]},
   {id:'variant-nbc-black',modelId:'model-nb',name:'NBC 500/500 · svart TERMOTEC',sku:'NBC/500/500/BLACK/BA1',verifiedOn:'2026-10-02',sourceUrl:'https://kratki.com/en/steel-fireplace-kratki-nbc-500-500-8-kw-lift-up-self-closing-door-black-thermotec-364485',specifications:{'Nominell effekt':'8 kW','Verkningsgrad':'83,5 %','Bredd × höjd × djup':'576 × 1470 × 719 mm','Vikt':'238 kg','Rökutlopp':'Ø 200 mm','Maximal vedlängd':'40 cm'},assetIds:[]},
   {id:'variant-vnl-480',modelId:'model-vn',name:'VNL 480/480 · lyftlucka',sku:'VNL/480/480',verifiedOn:'2026-10-02',sourceUrl:'https://kratki.com/en/steel-fireplace-kratki-vnl-480-480-8-kw-o-200-lift-up-59626',specifications:{'Nominell effekt':'8 kW','Verkningsgrad':'84 %','Bredd × höjd × djup':'599 × 1389 × 599 mm','Vikt':'195 kg','Rökutlopp':'Ø 200 mm'},assetIds:[]},
