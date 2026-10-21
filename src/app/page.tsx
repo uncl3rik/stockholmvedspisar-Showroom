@@ -1,8 +1,21 @@
 import Link from 'next/link';
-import { Arrow, Heading, ModelCard, ShowroomImage } from '@/components/showroom';
-import { insertModels, insertPreview } from '@/data/insert-catalog';
-export default function Home(){return <>
-<section className="shop-hero shell"><div className="shop-hero-copy"><p className="eyebrow">STOCKHOLM VEDSPISAR / ELD MED KARAKTÄR</p><h1 className="bespoke-title">Skräddarsydda<br/><span>Eldstäder.</span></h1><Link href="/designa" className="button dark">Börja med din insats <Arrow/></Link></div><Link href="/kollektion/kari" className="shop-hero-product" aria-label="Utforska KARI"><div className="product-stamp"><span>KARI-SERIEN</span><strong>KARI</strong></div><ShowroomImage assetId={insertPreview(insertModels[0])} priority sizes="(max-width:760px) 90vw, 50vw"/><div className="shop-product-foot"><span>Din insats. Din omramning.</span><span>Utforska KARI <Arrow/></span></div></Link></section>
-<section className="design-overview shell" aria-label="Så tar din eldstad form"><Link href="/designa"><span className="eyebrow">01 / BÖRJA HÄR</span><h2>Välj insats.</h2><p>Elden och glaset är utgångspunkten.</p><Arrow/></Link><div><span className="eyebrow">02 / NÄSTA STEG</span><h2>Välj utförande.</h2><p>Mått, material och detaljer.</p><span className="design-soon">Första skissen</span></div><div><span className="eyebrow">03 / NÄSTA STEG</span><h2>Placera i rum.</h2><p>Börja med rummets yta i m².</p><span className="design-soon">Första skissen</span></div></section>
-<section className="showroom-section shell"><Heading label="KARI / CONTURA I8" title="Börja inifrån." href="/kollektion" linkText="Utforska insatser"/><div className="model-grid">{insertModels.map(model=><ModelCard key={model.id} model={model}/>)}</div></section>
-</>}
+import { ShowroomImage, Arrow } from '@/components/showroom';
+import { designHref } from '@/lib/fireplace-design';
+import './entry.css';
+export default function Home() {
+  return <section className="design-entry shell" aria-labelledby="entry-title">
+    <header><p className="eyebrow">01 / VÄLJ DIN UTGÅNGSPUNKT</p><h1 id="entry-title">Vilken form är din?</h1><p>Välj insats. Utforska din idé – endast för inspiration.</p></header>
+    <div className="entry-options">
+      <Link href="/designa?steg=insats&format=liggande" className="entry-option">
+        <div className="entry-image"><ShowroomImage assetId="contura-i8-product" priority sizes="(max-width:760px) 44vw, 45vw"/></div>
+        <div className="entry-caption"><span className="eyebrow">KARI 80 / CONTURA I8</span><h2>Liggande</h2><span className="entry-action">Välj modell <Arrow/></span></div>
+      </Link>
+      <Link href={designHref('utforande','contura-i1','variant-contura-i1')} className="entry-option">
+        <div className="entry-image"><ShowroomImage assetId="contura-i1-product" priority sizes="(max-width:760px) 44vw, 45vw"/></div>
+        <div className="entry-caption"><span className="eyebrow">CONTURA I1</span><h2>Stående</h2><span className="entry-action">Börja designa <Arrow/></span></div>
+      </Link>
+    </div>
+    <Link className="entry-more" href="/om-eldstader">Mer info <Arrow/></Link>
+  </section>;
+}
+

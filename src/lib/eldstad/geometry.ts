@@ -14,7 +14,8 @@ export const clampDimension = (value: number, key: keyof EnclosureDimensions) =>
 export function defaultDimensions(data: KariConstruction): EnclosureDimensions | null {
   if (!data.dimensionsMm) return null;
   const d = data.dimensionsMm;
-  return { width: clampDimension(d.width + 400, 'width'), height: clampDimension(Math.max(2200, d.height + 700), 'height'), depth: clampDimension(d.depth + 100, 'depth'), plinth: 200 };
+  const lining = data.fireboard?.thicknessMm ?? UNVERIFIED_FIREBOARD_MM;
+  return { width: clampDimension(d.width + 400, 'width'), height: clampDimension(Math.max(2200, d.height + 700), 'height'), depth: clampDimension(Math.max(d.depth + 100, d.depth + lining + 12), 'depth'), plinth: 200 };
 }
 
 /** All calculation is in mm; emitted box transforms are metres for Three.js.

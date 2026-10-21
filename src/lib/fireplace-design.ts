@@ -5,7 +5,7 @@ export type FlueConnection = 'topp' | 'bak' | 'ny' | 'vet-ej';
 export type Placement = 'vagg' | 'horn' | 'mitt';
 export const placementLabels = { vagg: 'Mot vägg', horn: 'Hörn', mitt: 'Fristående mitt i rum' } as const;
 export const connectionLabels = { topp: 'Toppansluten', bak: 'Bakansluten', ny: 'Ny skorsten', 'vet-ej': 'Vet ej' } as const;
-export const visualizationNotice = 'Visualiseringen är vägledande. Konstruktion, brandskydd och säkerhetsavstånd kontrolleras enligt tillverkarens anvisningar för vald insats.';
+export const visualizationNotice = 'Designverktyget är endast till för inspiration. Visualiseringen och måtten är inte ett bygg- eller installationsunderlag. Konstruktion, brandskydd och säkerhetsavstånd kontrolleras enligt tillverkarens anvisningar för vald insats.';
 export type DesignPreferences = { form?: EnclosureShape; anslutning?: FlueConnection; kvm?: string; placering?: Placement; konfiguration?: string } & VisualPreferences;
 /** Preferences are a visual brief, not a verified construction specification.
  * Future geometry uses millimetres; room area is square metres.
@@ -20,7 +20,7 @@ export type FireplaceDesign = {
 };
 type Model = { id:string; slug:string; variantIds:string[] };
 type Variant = { id:string; modelId:string; configurations?: {id:string}[] };
-export type DesignQuery = { [K in 'modell'|'variant'|'steg'|'form'|'anslutning'|'kvm'|'dim'|'mat'|'kul'|'hy'|'ved'|'placering'|'konfiguration']?: string|string[] };
+export type DesignQuery = { [K in 'modell'|'variant'|'steg'|'form'|'anslutning'|'kvm'|'dim'|'mat'|'kul'|'hy'|'ved'|'placering'|'konfiguration'|'format']?: string|string[] };
 export const designSteps: {id:DesignStep;label:string}[]=[
 {id:'insats',label:'Välj insats'},{id:'utforande',label:'Välj utförande'},{id:'rum',label:'Placera i rum'}
 ];

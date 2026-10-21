@@ -1,4 +1,4 @@
 import { Intro } from '@/components/showroom';
 import Collection from '@/components/collection';
-export const metadata={title:'KARI och Contura i8',description:'Välj KARI från Kratki Pro eller Contura i8 som utgångspunkt för din eldstad.'};
-export default function Page(){return <><Intro label="KOLLEKTION / INSATSER" title="Elden börjar här." description="KARI och Contura i8. Två utgångspunkter för en egen omramning."/><section className="shell page-content" aria-label="Eldstadsinsatser"><Collection/></section></>}
+export const metadata={title:'KARI, Contura i8 och i1',description:'Välj KARI från Kratki Pro, Contura i8 eller i1 som utgångspunkt för din eldstad.'};
+export default function Page(){return <><Intro label="KOLLEKTION / INSATSER" title="Elden börjar här." description="KARI, Contura i8 och i1. Liggande och stående utgångspunkter för en egen omramning."/><section className="shell page-content" aria-label="Eldstadsinsatser"><Collection/></section></>}

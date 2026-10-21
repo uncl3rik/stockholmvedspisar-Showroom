@@ -7,7 +7,7 @@ import { configurationLabel } from '@/lib/configuration';
 import { decodeDraft } from '@/lib/design-draft';
 import { designHref, designPreferences, resolveDesign, placementLabels, connectionLabels, visualizationNotice, type DesignQuery } from '@/lib/fireplace-design';
 import { readEnclosure, enclosureSummary, visualPreferences } from '@/lib/eldstad/configuration';
-export const metadata={title:'Kontakt',description:'Frågor om insatser och utföranden från Kratki Pro och Contura. Kontaktformuläret är en demo.'};
+export const metadata={title:'Kontakt',description:'Frågor om insatser och utföranden från Kratki Pro och Contura. Kontakta oss om din eldstad och bifoga gärna din design.'};
 export default async function Page({searchParams}:{searchParams:Promise<DesignQuery & {utkast?:string|string[];miljo?:string}>}) {
   const q=await searchParams;
   const decoded=decodeDraft(q.utkast);
@@ -38,5 +38,6 @@ export default async function Page({searchParams}:{searchParams:Promise<DesignQu
       {draftHref && <div style={{overflowWrap:'anywhere'}}><p className="eyebrow">DELBART UTKAST</p><Link href={draftHref}>Öppna och fortsätt med utkastet</Link><p style={{fontSize:'.75rem',marginBlock:'12px'}}>{draftHref}</p><DraftLink href={draftHref}/><p className="quiet">{visualizationNotice}</p></div>}
       {q.utkast&&!hasDraft&&<p role="status">Utkastlänken kunde inte läsas. Öppna guiden och skapa en ny länk.</p>}
       {!hasDraft&&<p>Du behöver inte ha bestämt dig. Börja med den modell eller det uttryck du är nyfiken på.</p>}
-    </aside><QuoteForm key={context} context={context}/></div></>;
+    </aside><QuoteForm key={context} context={context} draftHref={draftHref}/></div></>;
 }
+

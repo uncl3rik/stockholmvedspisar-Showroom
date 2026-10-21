@@ -7,10 +7,11 @@ import RoomArea from '@/components/room-area';
 import EnclosureEditor from '@/components/eldstad/enclosure-editor';
 import './enclosure.css';
 
-export const metadata = { title: 'Designa din eldstad', description: 'Välj mellan KARI och Contura i8. En första skiss för omramning och placering.', robots: { index: false, follow: true } };
+export const metadata = { title: 'Designa din eldstad', description: 'Välj KARI 80, Contura i8 eller Contura i1. Forma omramningen och placera eldstaden i rummet.', robots: { index: false, follow: true } };
 
 export default async function Page({ searchParams }: { searchParams: Promise<DesignQuery> }) {
   const query = await searchParams;
+  const offeredModels = query.format === 'liggande' ? insertModels.filter(model => model.slug !== 'contura-i1') : insertModels;
   const { design, step } = resolveDesign(query, insertModels, insertVariants);
   const selected = insertModels.find(m => m.id === design.insert?.modelId);
   const selectedVariant = insertVariants.find(v => v.id === design.insert?.variantId);
@@ -20,19 +21,20 @@ export default async function Page({ searchParams }: { searchParams: Promise<Des
   if((step === 'utforande' || step === 'rum') && selected && selectedVariant) return <EnclosureEditor key={JSON.stringify(query)} modelSlug={selected.slug} variantId={selectedVariant.id} variantName={selectedVariant.name} data={selectedVariant.construction} initialPreferences={preferences} referenceAssetId={insertPreview(selected,selectedVariant)} step={step} power={selectedVariant.specifications['Nominell effekt'] || selectedVariant.specifications['Effekt enligt källa']}/>;
   const visualConfig = selectedVariant && design.visual ? readEnclosure(selectedVariant.construction, preferences) : null;
   return <div className="design-page shell">
-    <header className="design-heading"><p className="eyebrow">DIN ELDSTAD / FÖRSTA SKISSEN</p><h1>Från insats<br/>till din eldstad.</h1></header>
+    <header className="design-heading"><p className="eyebrow">DIN ELDSTAD / ENDAST FÖR INSPIRATION</p><h1>Från insats<br/>till din eldstad.</h1></header>
     <nav className="design-steps" aria-label="Designsteg">{designSteps.map((item,i) => selected || i === 0
       ? <Link key={item.id} href={href(item.id)} aria-current={step === item.id ? 'step' : undefined}><span>0{i+1}</span>{item.label}</Link>
       : <span key={item.id} aria-disabled="true"><span>0{i+1}</span>{item.label}</span>)}</nav>
     <div className="design-layout"><section aria-labelledby="design-stage-title">
-      <div className="design-stage-heading"><p className="eyebrow">STEG 0{index+1}</p><h2 id="design-stage-title">{step === 'insats' ? 'Börja med elden.' : 'Eldstaden i rummet.'}</h2><p>{step === 'insats' ? 'Välj KARI från Kratki Pro eller Contura i8. Du kan byta senare.' : 'Börja med rummets yta. Exakt placering lägger vi till senare.'}</p></div>
-      {step === 'insats' ? <div className="design-inserts">{insertModels.flatMap(model => model.variantIds.map(id => {
+      <div className="design-stage-heading"><p className="eyebrow">STEG 0{index+1}</p><h2 id="design-stage-title">{step === 'insats' ? 'Börja med elden.' : 'Eldstaden i rummet.'}</h2><p>{step === 'insats' ? (query.format === 'liggande' ? 'Välj KARI 80 eller Contura i8. Därefter formar du omramningen.' : 'Välj din insats. Därefter formar du omramningen.') : 'Börja med rummets yta. Exakt placering lägger vi till senare.'}</p></div>
+      {step === 'insats' && <Link href="/" className="line-link">Byt mellan stående och liggande <Arrow/></Link>}
+      {step === 'insats' ? <div className="design-inserts">{offeredModels.flatMap(model => model.variantIds.filter(id => model.slug !== 'kari' || id === 'variant-retailer-5047').map(id => {
         const variant = insertVariants.find(v => v.id === id)!;
         const active = selectedVariant?.id === id;
         return <article className={'design-insert'+(active?' is-selected':'')} key={id}>
           <Link className="design-insert-select" href={designHref('utforande',model.slug,id,active?preferences:{...preferences,dim:undefined,ved:undefined})} aria-label={'Välj '+variant.name} aria-current={active?'true':undefined}>
             <ShowroomImage assetId={insertPreview(model,variant)} sizes="(max-width:760px) 45vw, 25vw"/>
-            <div><p className="eyebrow">{model.brand.toUpperCase()} / INSATS</p><h3>{model.name}</h3><p>{variant.name}</p><span className="design-selection-label">{active?'Till utförande':'Välj insats'} <Arrow/></span></div>
+            <div><p className="eyebrow">{model.brand.toUpperCase()} / INSATS</p><h3>{model.slug === 'kari' ? 'KARI 80' : model.name}</h3>{model.slug !== 'kari' && <p>{variant.name}</p>}<span className="design-selection-label">{active?'Till utförande':'Välj insats'} <Arrow/></span></div>
           </Link><Link className="design-product-link" href={'/kollektion/'+model.slug+'?variant='+id}>Bilder & tekniska uppgifter <Arrow/></Link>
         </article>;
       }))}</div> : selected && selectedVariant ? <><RoomArea key={selectedVariant.id+'-'+preferences.kvm} modelSlug={selected.slug} variantId={selectedVariant.id} preferences={preferences}/><div className="design-canvas"><div><span className="eyebrow">RUMSVY / KOMMER SENARE</span><p>Här tar placeringen form.</p><span>Rumsytan är ett första underlag, inte en effektberäkning.</span></div></div></> : null}
@@ -44,3 +46,4 @@ export default async function Page({ searchParams }: { searchParams: Promise<Des
     </dl><p className="quiet">Dina val beskriver önskat utförande. Konstruktion och anslutning behöver verifieras för vald insats.</p></aside></div>
   </div>;
 }
+

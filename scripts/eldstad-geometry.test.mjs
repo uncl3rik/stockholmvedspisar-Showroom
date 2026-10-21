@@ -10,9 +10,10 @@ const cache = new Map();
 function load(file) {
   file = path.resolve(file);
   if (cache.has(file)) return cache.get(file);
+  if (file.endsWith('.json')) return JSON.parse(fs.readFileSync(file,'utf8'));
   const testModule = { exports: {} };
-  const js = ts.transpileModule(fs.readFileSync(file, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
-  vm.runInNewContext(js, { URLSearchParams, module: testModule, exports: testModule.exports, require: name => load(path.resolve(path.dirname(file), name + '.ts')) });
+  const js = ts.transpileModule(fs.readFileSync(file, 'utf8'), { compilerOptions: { esModuleInterop: true, module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
+  vm.runInNewContext(js, { URL, URLSearchParams, module: testModule, exports: testModule.exports, require: name => load(name.startsWith('@/') ? path.resolve('src',name.slice(2)+'.ts') : path.resolve(path.dirname(file), name.endsWith('.json')?name:name + '.ts')) });
   cache.set(file, testModule.exports);
   return testModule.exports;
 }
@@ -23,10 +24,25 @@ const { faceRepeats, splitShell, hollowInsert } = load('src/lib/eldstad/surfaces
 const { encodeDraft, decodeDraft, draftContactHref } = load('src/lib/design-draft.ts');
 const { roomLayout, powerGuidance } = load('src/lib/eldstad/room.ts');
 const { conturaConstruction, conturaModel, conturaVariant } = load('src/data/contura-i8.ts');
+const { i1Construction, i1Model, i1Variant } = load('src/data/contura-i1.ts');
 const { designHref, resolveDesign, designPreferences } = load('src/lib/fireplace-design.ts');
 const normal = kariConstruction['variant-retailer-5080'];
 const options = data => ({ ...defaultDimensions(data), shelf: false, wood: 'none' });
 const plain = value => JSON.parse(JSON.stringify(value));
+
+test('standing i1 starts step 02 with portrait dimensions and fits its default enclosure', () => {
+  const config=readEnclosure(i1Construction,{});
+  assert.ok(i1Construction.dimensionsMm.height > i1Construction.dimensionsMm.width);
+  assert.deepEqual(plain(i1Construction.dimensionsMm),{width:480,height:550,depth:350});
+  assert.equal(calculateGeometry(i1Construction,config).tooSmall,false);
+  assert.equal(calculateGeometry(i1Construction,config).parts.find(p=>p.id==='board-left').size[0],0.1);
+  const prefs={...visualPreferences(config),kvm:'30',placering:'horn'};
+  const href=designHref('utforande',i1Model.slug,i1Variant.id,prefs);
+  const restored=resolveDesign(Object.fromEntries(new URL(href,'https://example.com').searchParams),[i1Model],[i1Variant]);
+  assert.equal(restored.step,'utforande');
+  const contact=new URL(draftContactHref(i1Model.slug,i1Variant.id,prefs),'https://example.com');
+  assert.equal(resolveDesign(decodeDraft(contact.searchParams.get('utkast')),[i1Model],[i1Variant]).design.insert.variantId,i1Variant.id);
+});
 
 test('Contura i8 uses manufacturer millimetres and works through all guide steps and contact', () => {
   assert.equal(conturaModel.brand, 'Contura');
@@ -208,5 +224,23 @@ test('invalid URL values fall back safely, valid numbers clamp to supported rang
   assert.equal(bad.wood, 'none');
   const clamped = readEnclosure(normal, { dim: '1.9999.1.9999' });
   assert.deepEqual([clamped.width, clamped.height, clamped.depth, clamped.plinth], [900, 2700, 450, 600]);
+});
+
+
+
+const { draftFromHref, parseSavedDrafts, upsertDraft } = load('src/lib/saved-drafts.ts');
+test('saved designs preserve all choices and rebuild untrusted stored summaries',()=>{
+ const href='/designa?steg=utforande&modell=contura-i1&variant=variant-contura-i1&dim=1400.2400.600.200&mat=puts&kul=vit&hy=1&ved=none&kvm=35&placering=horn&anslutning=bak';
+ const draft=draftFromHref(href);assert.ok(draft);
+ const restored=parseSavedDrafts(JSON.stringify([{...draft,title:'bad',summary:'bad'}]));
+ assert.equal(restored[0].href,draft.href);assert.equal(restored[0].summary,draft.summary);
+ const q=new URL(draft.href,'https://example.com').searchParams;
+ for(const key of ['dim','mat','kul','hy','ved','kvm','placering','anslutning'])assert.equal(q.get(key),new URL(href,'https://example.com').searchParams.get(key));
+ assert.equal(upsertDraft([draft],draft).length,1);
+ assert.equal(upsertDraft(Array.from({length:12},(_,i)=>({...draft,href:draft.href+'&x='+i})),draft).length,10);
+});
+test('broken storage and external or unknown designs are ignored',()=>{
+ assert.equal(parseSavedDrafts('broken').length,0);
+ for(const href of ['https://example.com/designa?modell=kari','/designa?modell=unknown','javascript:alert(1)',null])assert.equal(draftFromHref(href),null);
 });
 
