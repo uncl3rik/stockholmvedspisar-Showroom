@@ -122,7 +122,7 @@ export default function VariantExplorer({ variants, modelSlug, fallbackAssetIds,
           <table className="specs"><caption className="sr-only">Uppgifter för {variant.name}</caption><tbody>{Object.entries(variant.specifications).map(([key, value]) => <tr key={key}><th scope="row">{key}</th><td>{value}</td></tr>)}</tbody></table>
           <p className="specs-note">Produktunderlag kontrollerat {variant.verifiedOn}. Måtten avser själva produkten. Kontrollera även modellens säkerhetsavstånd.</p>
           {!variant.sourceName && <a className="line-link" href={variant.sourceUrl} target="_blank" rel="noreferrer">Produktuppgifter hos Kratki <Arrow/></a>}
-          {variant.documentLinks?.map(link => <a className="line-link document-link" href={link.url} key={link.url} target="_blank" rel="noreferrer">{link.label} <Arrow/></a>)}
+          {!['liggande','staende'].includes(modelSlug) && variant.documentLinks?.map(link => <a className="line-link document-link" href={link.url} key={link.url} target="_blank" rel="noreferrer">{link.label} <Arrow/></a>)}
           {Boolean(variant.issues?.length) && <details className="source-details"><summary>Uppgifter att komplettera</summary><ul>{variant.issues!.map(issue => <li key={issue}>{issue}</li>)}</ul></details>}
         </div>
       </details>

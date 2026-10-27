@@ -5,7 +5,7 @@ import { models, variants, getAsset, type ProductModel, type ProductVariant } fr
 
 // Explicit scope for the design sketch, selected by the project owner.
 // Eligibility here does not certify an enclosure system or a flue connection.
-export const insertModels = models.filter(model => ['kari', 'contura-i8', 'contura-i1'].includes(model.slug));
+export const insertModels = models.filter(model => ['liggande', 'staende'].includes(model.slug));
 export const insertVariants = variants.filter(variant => insertModels.some(model => model.id === variant.modelId)).map(variant => ({ ...variant, construction: variant.id === 'variant-contura-i1' ? i1Construction : variant.id === 'variant-contura-i8' ? conturaConstruction : kariConstruction[variant.id] }));
 export function insertPreview(model: ProductModel, variant?: ProductVariant) {
   return variant?.configurations?.[0]?.assetId || variant?.assetIds.find(id => getAsset(id).kind === 'product') || model.assetIds.find(id => getAsset(id).kind === 'product') || model.coverAssetId;

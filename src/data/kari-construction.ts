@@ -1,5 +1,6 @@
 export type DimensionsMm = { width: number; height: number; depth: number };
 export type KariConstruction = {
+  sideGlazing?: boolean;
   dimensionsMm: DimensionsMm | null;
   dimensionsStatus: 'verified' | 'unverified' | 'missing';
   sourceDimensions: string | null;

@@ -18,18 +18,29 @@ export function faceRepeats(size: [number, number, number], meters: [number, num
 }
 
 /** Hollow schematic appliance: the fire can sit behind its transparent glass. */
-export function hollowInsert(body: BoxPart, glass: BoxPart, tunnel: boolean): BoxPart[] {
+export function hollowInsert(body: BoxPart, glass: BoxPart, tunnel: boolean, sideGlass: BoxPart[] = []): BoxPart[] {
   const [w, h, d] = body.size;
   const [x, y, z] = body.position;
   const side = (w - glass.size[0]) / 2;
   const bottom = glass.position[1] - glass.size[1] / 2 - (y - h / 2);
   const top = y + h / 2 - (glass.position[1] + glass.size[1] / 2);
   const box = (id: string, size: BoxPart['size'], position: BoxPart['position']): BoxPart => ({ id, kind: 'insert', size, position });
-  return [
+  const parts = [
     box('insert-left', [side,h,d], [x-(w-side)/2,y,z]),
     box('insert-right', [side,h,d], [x+(w-side)/2,y,z]),
     box('insert-bottom', [glass.size[0],bottom,d], [x,y-h/2+bottom/2,z]),
     box('insert-top', [glass.size[0],top,d], [x,y+h/2-top/2,z]),
     ...(!tunnel ? [box('insert-back', [w,h,0.02], [x,y,z-d/2+0.01])] : []),
   ].filter(part => part.size.every(n => n > 0));
+  return parts.flatMap(part => {
+    const pane = sideGlass.find(g => g.id === part.id.replace('insert-', 'glass-'));
+    if (!pane) return [part];
+    const post = (d - pane.size[2]) / 2;
+    return [
+      box(part.id + '-lower', [side,bottom,d], [part.position[0],y-h/2+bottom/2,z]),
+      box(part.id + '-upper', [side,top,d], [part.position[0],y+h/2-top/2,z]),
+      box(part.id + '-front', [side,pane.size[1],post], [part.position[0],pane.position[1],z+(d-post)/2]),
+      box(part.id + '-rear', [side,pane.size[1],post], [part.position[0],pane.position[1],z-(d-post)/2]),
+    ].filter(p => p.size.every(n => n > 0));
+  });
 }

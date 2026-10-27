@@ -20,7 +20,7 @@ export type FireplaceDesign = {
 };
 type Model = { id:string; slug:string; variantIds:string[] };
 type Variant = { id:string; modelId:string; configurations?: {id:string}[] };
-export type DesignQuery = { [K in 'modell'|'variant'|'steg'|'form'|'anslutning'|'kvm'|'dim'|'mat'|'kul'|'hy'|'ved'|'placering'|'konfiguration'|'format']?: string|string[] };
+export type DesignQuery = { [K in 'modell'|'variant'|'steg'|'form'|'anslutning'|'kvm'|'dim'|'mat'|'kul'|'hy'|'ved'|'placering'|'konfiguration'|'format'|'glas']?: string|string[] };
 export const designSteps: {id:DesignStep;label:string}[]=[
 {id:'insats',label:'Välj insats'},{id:'utforande',label:'Välj utförande'},{id:'rum',label:'Placera i rum'}
 ];
@@ -31,13 +31,14 @@ export function parseArea(value: unknown): number | null {
 }
 export function resolveDesign(query:DesignQuery,models:Model[],variants:Variant[]):{design:FireplaceDesign;step:DesignStep}{
   // The supplied catalogue is the explicit allowlist, independent of legacy categories.
-  const model=models.find(m=>m.slug===query.modell);
+  const slug = query.modell === 'contura-i8' ? 'liggande' : query.modell === 'contura-i1' ? 'staende' : query.modell;
+  const model=models.find(m=>m.slug===slug || m.slug===query.modell);
   const variant=variants.find(v=>v.id===query.variant&&v.modelId===model?.id&&model?.variantIds.includes(v.id));
   const insert=model&&variant?{modelId:model.id,variantId:variant.id}:null;
   const requestedStep = query.steg === 'omramning' ? 'utforande' : query.steg;
   const step=insert&&designSteps.some(s=>s.id===requestedStep)?requestedStep as DesignStep:'insats';
   const visual: VisualPreferences = {};
-  for(const key of ['dim','mat','kul','hy','ved'] as const) { const value=query[key]; if(insert && typeof value==='string' && value.length<=64) visual[key]=value; }
+  for(const key of ['dim','mat','kul','hy','ved','glas'] as const) { const value=query[key]; if(insert && typeof value==='string' && value.length>0 && value.length<=64) visual[key]=value; }
   const shape=query.form==='fyrkantig'||query.form==='rektangular'?query.form:null;
   const flueConnection=typeof query.anslutning==='string' && Object.hasOwn(connectionLabels,query.anslutning)?query.anslutning as FlueConnection:null;
   const placement=typeof query.placering==='string' && Object.hasOwn(placementLabels,query.placering)?query.placering as Placement:undefined;
@@ -52,5 +53,6 @@ export function designHref(step:DesignStep | 'omramning',modelSlug?:string,varia
   const query=new URLSearchParams({steg:step === 'omramning' ? 'utforande' : step});
   if(modelSlug&&variantId){query.set('modell',modelSlug);query.set('variant',variantId);
   for(const [key,value]of Object.entries(preferences))if(value)query.set(key,value);}
+  query.sort();
   return '/designa?'+query;
 }

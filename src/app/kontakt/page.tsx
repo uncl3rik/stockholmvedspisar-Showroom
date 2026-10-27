@@ -7,14 +7,14 @@ import { configurationLabel } from '@/lib/configuration';
 import { decodeDraft } from '@/lib/design-draft';
 import { designHref, designPreferences, resolveDesign, placementLabels, connectionLabels, visualizationNotice, type DesignQuery } from '@/lib/fireplace-design';
 import { readEnclosure, enclosureSummary, visualPreferences } from '@/lib/eldstad/configuration';
-export const metadata={title:'Kontakt',description:'Frågor om insatser och utföranden från Kratki Pro och Contura. Kontakta oss om din eldstad och bifoga gärna din design.'};
+export const metadata={title:'Kontakt',description:'Frågor om insatser och utföranden. Kontakta oss om din eldstad och bifoga gärna din design.'};
 export default async function Page({searchParams}:{searchParams:Promise<DesignQuery & {utkast?:string|string[];miljo?:string}>}) {
   const q=await searchParams;
   const decoded=decodeDraft(q.utkast);
   const resolved=decoded ? resolveDesign(decoded,models,variants) : null;
   const hasDraft=Boolean(resolved?.design.insert);
   const source=hasDraft && decoded ? decoded : q;
-  const model=models.find(m=>m.slug===source.modell);
+  const model=models.find(m=>m.id===resolved?.design.insert?.modelId || m.slug===source.modell);
   const variant=variants.find(v=>v.id===source.variant&&v.modelId===model?.id);
   const configuration=variant?.configurations?.find(c=>c.id===source.konfiguration);
   const prefs=resolved && hasDraft ? designPreferences(resolved.design) : null;
@@ -27,7 +27,7 @@ export default async function Page({searchParams}:{searchParams:Promise<DesignQu
     ['Rumsyta',normalized.kvm?normalized.kvm.replace('.',',')+' m²':'Inte angiven'],
     ['Skorstensanslutning',normalized.anslutning?connectionLabels[normalized.anslutning]:'Inte vald'],
   ] : [];
-  const productContext=[model?model.brand+' / '+model.name:null,variant?variant.name:null,variant?configurationLabel(variant,configuration):null].filter(Boolean).join(' · ');
+  const productContext=[model?model.name:null,variant?variant.name:null,variant?configurationLabel(variant,configuration):null].filter(Boolean).join(' · ');
   const context=[productContext,...summary.map(([label,value])=>`${label}: ${value}`),draftHref?'Utkast: '+draftHref:null].filter(Boolean).join('\n');
   return <><Intro label="KONTAKT / STOCKHOLM VEDSPISAR" title="Frågor om din eldstad?" description="Frågor om en modell, ett material eller ett utförande? Här samlar vi dina val."/>
     <div className="quote-layout shell"><aside className="quote-aside">

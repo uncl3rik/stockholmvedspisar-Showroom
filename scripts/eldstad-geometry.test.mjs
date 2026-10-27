@@ -30,6 +30,61 @@ const normal = kariConstruction['variant-retailer-5080'];
 const options = data => ({ ...defaultDimensions(data), shelf: false, wood: 'none' });
 const plain = value => JSON.parse(JSON.stringify(value));
 
+test('glazing choices open the selected sides through body, lining and shell', () => {
+  for (const glazing of ['front','left','right','both']) {
+    const config = readEnclosure(conturaConstruction, {glas:glazing});
+    const geometry = calculateGeometry(conturaConstruction, config);
+    assert.equal(geometry.tooSmall, false);
+    const body = geometry.parts.find(p => p.id === 'insert');
+    const front = geometry.parts.find(p => p.id === 'glass-front');
+    const sides = geometry.parts.filter(p => ['glass-left','glass-right'].includes(p.id));
+    const hollow = hollowInsert(body, front, false, sides);
+    assert.deepEqual(plain(body.size), [.735,.53,.365]);
+    for (const side of ['left','right']) {
+      const open = glazing === side || glazing === 'both';
+      assert.equal(sides.some(p => p.id === 'glass-'+side), open);
+      assert.equal(hollow.some(p => p.id === 'insert-'+side), !open);
+      assert.equal(geometry.parts.some(p => p.id === 'board-'+side), !open);
+      if (open) {
+        // At the centre of the glass no opaque side piece may block the sightline.
+        const pane = sides.find(p => p.id === 'glass-'+side);
+        for (const part of [...geometry.parts.filter(p => p.id.startsWith(side) || p.id.startsWith('board-'+side)),...hollow.filter(p => p.id.startsWith('insert-'+side))]) {
+          const covers = [1,2].every(axis => Math.abs(part.position[axis]-pane.position[axis]) < part.size[axis]/2 - 1e-6);
+          assert.equal(covers,false,part.id+' blocks side glass');
+        }
+      }
+    }
+    assert.ok(geometry.parts.every(p => p.size.every(n => Number.isFinite(n) && n > 0)));
+  }
+});
+
+test('glass survives step links, saved drafts and contact handoff; portrait rejects side glass', () => {
+  for (const glas of ['front','left','right','both']) {
+    const prefs = {...visualPreferences(readEnclosure(conturaConstruction,{glas})),kvm:'28'};
+    const href = designHref('rum',conturaModel.slug,conturaVariant.id,prefs);
+    const saved = draftFromHref(href);
+    assert.equal(new URL(saved.href,'https://example.com').searchParams.get('glas'),glas);
+    const decoded = decodeDraft(encodeDraft(conturaModel.slug,conturaVariant.id,prefs));
+    const resolved = resolveDesign({...decoded,steg:'rum'},[conturaModel],[conturaVariant]);
+    assert.equal(readEnclosure(conturaConstruction,designPreferences(resolved.design)).glazing,glas);
+    assert.equal(readEnclosure(i1Construction,{glas}).glazing,'front');
+    assert.equal(calculateGeometry(i1Construction,{...options(i1Construction),glazing:glas}).parts.filter(p=>p.kind==='glass').length,1);
+  }
+  assert.equal(readEnclosure(conturaConstruction,{glas:'__proto__'}).glazing,'front');
+});
+
+test('wood compartments cannot obscure selected side glass and old compact drafts still load', () => {
+  for (const side of ['left','right']) {
+    assert.equal(readEnclosure(conturaConstruction,{glas:side,ved:side}).wood,'none');
+    assert.equal(readEnclosure(conturaConstruction,{glas:'both',ved:side}).wood,'none');
+    assert.equal(readEnclosure(conturaConstruction,{glas:'front',ved:side}).wood,side);
+  }
+  const legacy = JSON.parse(encodeDraft('contura-i8',conturaVariant.id,{})).slice(0,-1);
+  const result = resolveDesign(decodeDraft(JSON.stringify(legacy)),[conturaModel],[conturaVariant]);
+  assert.equal(result.design.insert.variantId,conturaVariant.id);
+  assert.equal(readEnclosure(conturaConstruction,designPreferences(result.design)).glazing,'front');
+});
+
 test('standing i1 starts step 02 with portrait dimensions and fits its default enclosure', () => {
   const config=readEnclosure(i1Construction,{});
   assert.ok(i1Construction.dimensionsMm.height > i1Construction.dimensionsMm.width);
@@ -45,7 +100,8 @@ test('standing i1 starts step 02 with portrait dimensions and fits its default e
 });
 
 test('Contura i8 uses manufacturer millimetres and works through all guide steps and contact', () => {
-  assert.equal(conturaModel.brand, 'Contura');
+  assert.equal(conturaModel.brand, '');
+  assert.equal(conturaModel.name, 'Liggande');
   assert.deepEqual(plain(conturaConstruction.dimensionsMm), {width:735,height:530,depth:365});
   assert.equal(conturaConstruction.dimensionsStatus, 'verified');
   const config=readEnclosure(conturaConstruction, {});
@@ -206,7 +262,7 @@ test('wood niches mirror; W variants suppress extra niches; only tunnels have re
   assert.ok(calculateGeometry(tunnel, options(tunnel)).parts.some(p => p.id === 'glass-back'));
 });
 test('every visual selection survives URL round-trip and step 03 links', () => {
-  const chosen = { width: 1400, height: 2400, depth: 650, plinth: 250, shelf: true, wood: 'right', finish: 'stal', color: 'sand' };
+  const chosen = { glazing: 'front', width: 1400, height: 2400, depth: 650, plinth: 250, shelf: true, wood: 'right', finish: 'stal', color: 'sand' };
   const prefs = { ...visualPreferences(chosen), anslutning: 'bak', kvm: '35.5' };
   const query = Object.fromEntries(new URL(designHref('rum', 'kari', 'v', prefs), 'https://example.com').searchParams);
   const result = resolveDesign(query, [{ id: 'kari', slug: 'kari', variantIds: ['v'] }], [{ id: 'v', modelId: 'kari' }]);

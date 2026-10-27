@@ -107,7 +107,7 @@ function SceneContent({ data, config, options, room }: {data: KariConstruction; 
   const glass = geometry.parts.find(p => p.id === 'glass-front');
   const rearGlass = geometry.parts.find(p => p.id === 'glass-back');
   const applianceParts = useMemo(() => parts.filter(p => p.kind === 'insert' || p.kind === 'glass' || p.id === 'integrated-wood'), [parts]);
-  const placeholderParts = useMemo(() => applianceParts.flatMap(part => part.id === 'insert' && glass ? hollowInsert(part, glass, data.tunnel) : [part]), [applianceParts, glass, data.tunnel]);
+  const placeholderParts = useMemo(() => applianceParts.flatMap(part => part.id === 'insert' && glass ? hollowInsert(part, glass, data.tunnel, applianceParts.filter(p => p.id === 'glass-left' || p.id === 'glass-right')) : [part]), [applianceParts, glass, data.tunnel]);
   const placeholder = placeholderParts.map(part => <Part key={part.id} part={part} config={config} textures={null} boards={false} tooSmall={false}/>);
   const board = parts.find(p => p.id === 'board-left');
   return <>

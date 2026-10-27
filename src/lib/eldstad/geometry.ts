@@ -6,7 +6,15 @@ export const dimensionLimits = {
 } as const;
 export type WoodCompartment = 'none' | 'left' | 'right';
 export type EnclosureDimensions = DimensionsMm & { plinth: number };
-export type GeometryOptions = EnclosureDimensions & { shelf: boolean; wood: WoodCompartment };
+export const glazingLabels = { front: 'Frontglas', left: 'Front + vänster sida', right: 'Front + höger sida', both: 'Front + båda sidor' } as const;
+export type InsertGlazing = keyof typeof glazingLabels;
+export function normalizeGlazing(data: KariConstruction, value?: string): InsertGlazing {
+  return data.sideGlazing && value && Object.hasOwn(glazingLabels, value) ? value as InsertGlazing : 'front';
+}
+export function normalizeWood(data: KariConstruction, glazing: InsertGlazing, wood?: string): WoodCompartment {
+  return !data.builtInWoodCompartment && (wood === 'left' || wood === 'right') && glazing !== 'both' && glazing !== wood ? wood : 'none';
+}
+export type GeometryOptions = EnclosureDimensions & { shelf: boolean; wood: WoodCompartment; glazing?: InsertGlazing };
 export type BoxPart = { id: string; size: [number, number, number]; position: [number, number, number]; kind: 'shell' | 'board' | 'insert' | 'glass' | 'wood' };
 // TODO: verifiera mot vald tillverkares monteringsanvisning. Visualisation fallback, NOT a requirement.
 export const UNVERIFIED_FIREBOARD_MM = 50;
@@ -28,7 +36,8 @@ export function calculateGeometry(data: KariConstruction, options: GeometryOptio
   if (!d) return { parts, warnings: ['Mått under verifiering'], missing: true, tooSmall: false, requiredMm: null };
   const { width: w, height: h, depth: depth, plinth: base } = options;
   const t = data.fireboard?.thicknessMm ?? UNVERIFIED_FIREBOARD_MM;
-  const wood = data.builtInWoodCompartment ? 'none' : options.wood;
+  const glazing = normalizeGlazing(data, options.glazing);
+  const wood = normalizeWood(data, glazing, options.wood);
   const frontRecess = 12;
   const bay = wood === 'none' ? 0 : 350;
   const requiredMm = { width: Math.max(d.width + 2 * t + bay, data.minimumEnclosureMm?.width ?? 0), height: Math.max(base + d.height + 2 * t, data.minimumEnclosureMm?.height ?? 0), depth: Math.max(d.depth + frontRecess + (data.tunnel ? 0 : t), data.minimumEnclosureMm?.depth ?? 0) };
@@ -45,6 +54,18 @@ export function calculateGeometry(data: KariConstruction, options: GeometryOptio
   const left = w / 2 + x - openingW / 2;
   const right = w / 2 - x - openingW / 2;
   const openingY = base + openingH / 2;
+  const glassSides = { left: glazing === 'left' || glazing === 'both', right: glazing === 'right' || glazing === 'both' };
+  const glassHeight = d.height * 0.72;
+  const glassBottom = openingY - glassHeight / 2;
+  const glassTop = openingY + glassHeight / 2;
+  // Cut a sightline through the side enclosure and lining to the glass.
+  // Rear returns remain behind the appliance; these are visual parts, not structural specifications.
+  const openSide = (id: string, kind: BoxPart['kind'], size: number, center: number, bottom: number, top: number) => {
+    add(id + '-lower', kind, size, glassBottom - bottom, depth, center, (bottom + glassBottom) / 2);
+    add(id + '-upper', kind, size, top - glassTop, depth, center, (top + glassTop) / 2);
+    const rear = Math.max(0, depth - frontRecess - d.depth);
+    add(id + '-rear', kind, size, glassHeight, rear, center, openingY, -depth / 2 + rear / 2);
+  };
   const side = (id: string, size: number, center: number, hasBay: boolean) => {
     if (!hasBay) { add(id, 'shell', size, h, depth, center, h / 2); return; }
     // A separate side niche made of boxes; no boolean cuts.
@@ -56,12 +77,16 @@ export function calculateGeometry(data: KariConstruction, options: GeometryOptio
     add(id + '-top', 'shell', size - 2 * wall, h - nicheH - wall, depth, center, (h + nicheH + wall) / 2);
     add(id + '-back', 'wood', size - 2 * wall, nicheH, wall, center, wall + nicheH / 2, -depth / 2 + wall / 2);
   };
-  side('left', left, -w / 2 + left / 2, wood === 'left');
-  side('right', right, w / 2 - right / 2, wood === 'right');
+  if (glassSides.left) openSide('left', 'shell', left, -w / 2 + left / 2, 0, h);
+  else side('left', left, -w / 2 + left / 2, wood === 'left');
+  if (glassSides.right) openSide('right', 'shell', right, w / 2 - right / 2, 0, h);
+  else side('right', right, w / 2 - right / 2, wood === 'right');
   add('plinth', 'shell', openingW, base, depth, x, base / 2);
   add('top', 'shell', openingW, h - base - openingH, depth, x, (h + base + openingH) / 2);
-  add('board-left', 'board', t, openingH, depth, x - (d.width + t) / 2, openingY);
-  add('board-right', 'board', t, openingH, depth, x + (d.width + t) / 2, openingY);
+  if (glassSides.left) openSide('board-left', 'board', t, x - (d.width + t) / 2, base, base + openingH);
+  else add('board-left', 'board', t, openingH, depth, x - (d.width + t) / 2, openingY);
+  if (glassSides.right) openSide('board-right', 'board', t, x + (d.width + t) / 2, base, base + openingH);
+  else add('board-right', 'board', t, openingH, depth, x + (d.width + t) / 2, openingY);
   add('board-bottom', 'board', d.width, t, depth, x, base + t / 2);
   add('board-top', 'board', d.width, t, depth, x, base + t + d.height + t / 2);
   const front = depth / 2 - frontRecess;
@@ -74,6 +99,8 @@ export function calculateGeometry(data: KariConstruction, options: GeometryOptio
   const glassH = fireboxH * 0.72;
   const glassY = openingY + woodH / 2;
   add('glass-front', 'glass', d.width * 0.85, glassH, 4, x, glassY, front + 3);
+  if (glassSides.left) add('glass-left', 'glass', 4, glassH, d.depth - 40, x - d.width / 2 - 3, glassY, bodyZ);
+  if (glassSides.right) add('glass-right', 'glass', 4, glassH, d.depth - 40, x + d.width / 2 + 3, glassY, bodyZ);
   if (data.tunnel) add('glass-back', 'glass', d.width * 0.85, glassH, 4, x, glassY, front - d.depth - 3);
   if (data.builtInWoodCompartment) add('integrated-wood', 'wood', d.width * 0.85, woodH * 0.8, 5, x, base + t + woodH / 2, front + 3);
   if (options.shelf) add('shelf', 'shell', w + 100, 50, depth + 160, 0, Math.max(25, base - 25), 80);
