@@ -1,4 +1,5 @@
 import type { KariConstruction, DimensionsMm } from '../../data/kari-construction';
+import { normalizeDetails, type DetailSettings } from './details';
 
 export const dimensionLimits = {
   width: { min: 900, max: 2400 }, height: { min: 1200, max: 2700 },
@@ -14,7 +15,7 @@ export function normalizeGlazing(data: KariConstruction, value?: string): Insert
 export function normalizeWood(data: KariConstruction, glazing: InsertGlazing, wood?: string): WoodCompartment {
   return !data.builtInWoodCompartment && (wood === 'left' || wood === 'right') && glazing !== 'both' && glazing !== wood ? wood : 'none';
 }
-export type GeometryOptions = EnclosureDimensions & { shelf: boolean; wood: WoodCompartment; glazing?: InsertGlazing };
+export type GeometryOptions = EnclosureDimensions & Partial<DetailSettings> & { shelf: boolean; wood: WoodCompartment; glazing?: InsertGlazing };
 export type BoxPart = { id: string; size: [number, number, number]; position: [number, number, number]; kind: 'shell' | 'board' | 'insert' | 'glass' | 'wood' };
 // TODO: verifiera mot vald tillverkares monteringsanvisning. Visualisation fallback, NOT a requirement.
 export const UNVERIFIED_FIREBOARD_MM = 50;
@@ -38,19 +39,37 @@ export function calculateGeometry(data: KariConstruction, options: GeometryOptio
   const t = data.fireboard?.thicknessMm ?? UNVERIFIED_FIREBOARD_MM;
   const glazing = normalizeGlazing(data, options.glazing);
   const wood = normalizeWood(data, glazing, options.wood);
+  const detail = normalizeDetails(options);
   const frontRecess = 12;
-  const bay = wood === 'none' ? 0 : 350;
-  const requiredMm = { width: Math.max(d.width + 2 * t + bay, data.minimumEnclosureMm?.width ?? 0), height: Math.max(base + d.height + 2 * t, data.minimumEnclosureMm?.height ?? 0), depth: Math.max(d.depth + frontRecess + (data.tunnel ? 0 : t), data.minimumEnclosureMm?.depth ?? 0) };
+  const bay = wood === 'none' ? 0 : detail.woodWidth + 2 * t;
+  const nicheBottom = options.shelf && detail.shelfLevel === 'below' ? Math.max(t, base, detail.shelfThickness) : t;
+  const nicheTop = wood === 'none' ? 0 : nicheBottom + detail.woodHeight + t;
+  const upperShelfBase = Math.max(base + d.height + 2 * t, nicheTop);
+  const shoulder = Math.max(base + d.height + 2 * t + 120, nicheTop);
+  const requiredMm = { width: Math.max(d.width + 2 * t + bay, data.minimumEnclosureMm?.width ?? 0), height: Math.max(base + d.height + 2 * t, options.shelf && detail.shelfLevel === 'above' ? upperShelfBase + detail.shelfThickness : 0, nicheTop, detail.profile === 'stepped' ? shoulder + 200 : 0, data.minimumEnclosureMm?.height ?? 0), depth: Math.max(d.depth + frontRecess + (data.tunnel ? 0 : t), data.minimumEnclosureMm?.depth ?? 0) };
   if (w < requiredMm.width) warnings.push('Omramningen är för smal för insatsen och valda skikten.');
   if (h < requiredMm.height) warnings.push('Omramningen är för låg för insatsen och sockeln.');
   if (depth < requiredMm.depth) warnings.push('Omramningen är för grund för insatsen.');
-  const add = (id: string, kind: BoxPart['kind'], width: number, height: number, zSize: number, x: number, y: number, z = 0) => {
+  const upperWidth = Math.max(400, w - 2 * detail.shoulderInset);
+  if (detail.profile === 'stepped' && h < shoulder + 200) warnings.push(`Avtrappad form behöver minst ${shoulder + 200} mm höjd för en synlig överdel.`);
+  if (wood !== 'none' && detail.woodHeight + 2 * t > h) warnings.push('Vedfacket är för högt för omramningen.');
+  const rawAdd = (id: string, kind: BoxPart['kind'], width: number, height: number, zSize: number, x: number, y: number, z = 0) => {
     if ([width, height, zSize, x, y, z].every(Number.isFinite) && width > 0 && height > 0 && zSize > 0)
       parts.push({ id, kind, size: [width / 1000, height / 1000, zSize / 1000], position: [x / 1000, y / 1000, z / 1000] });
   };
+  const add: typeof rawAdd = (id, kind, width, height, zSize, x, y, z = 0) => {
+    if (detail.profile !== 'stepped' || kind !== 'shell' || id === 'shelf' || y + height / 2 <= shoulder) {
+      rawAdd(id, kind, width, height, zSize, x, y, z); return;
+    }
+    const bottom = y - height / 2, top = y + height / 2;
+    if (bottom < shoulder) rawAdd(id, kind, width, shoulder - bottom, zSize, x, (bottom + shoulder) / 2, z);
+    const upperBottom = Math.max(shoulder, bottom);
+    const left = Math.max(x - width / 2, -upperWidth / 2), right = Math.min(x + width / 2, upperWidth / 2);
+    rawAdd(id + '-upper', kind, right - left, top - upperBottom, zSize, (left + right) / 2, (upperBottom + top) / 2, z);
+  };
   const openingW = d.width + 2 * t;
   const openingH = d.height + 2 * t;
-  const x = wood === 'left' ? bay / 2 : wood === 'right' ? -bay / 2 : 0;
+  const x = wood === 'left' ? -w / 2 + bay + openingW / 2 : wood === 'right' ? w / 2 - bay - openingW / 2 : 0;
   const left = w / 2 + x - openingW / 2;
   const right = w / 2 - x - openingW / 2;
   const openingY = base + openingH / 2;
@@ -70,12 +89,15 @@ export function calculateGeometry(data: KariConstruction, options: GeometryOptio
     if (!hasBay) { add(id, 'shell', size, h, depth, center, h / 2); return; }
     // A separate side niche made of boxes; no boolean cuts.
     const wall = Math.min(t, size / 3);
-    const nicheH = Math.min(650, h - 2 * wall);
+    const nicheH = Math.min(detail.woodHeight, h - nicheBottom - wall);
     add(id + '-outer', 'shell', wall, h, depth, center + (id === 'left' ? -1 : 1) * (size - wall) / 2, h / 2);
     add(id + '-inner', 'shell', wall, h, depth, center + (id === 'left' ? 1 : -1) * (size - wall) / 2, h / 2);
-    add(id + '-bottom', 'shell', size - 2 * wall, wall, depth, center, wall / 2);
-    add(id + '-top', 'shell', size - 2 * wall, h - nicheH - wall, depth, center, (h + nicheH + wall) / 2);
-    add(id + '-back', 'wood', size - 2 * wall, nicheH, wall, center, wall + nicheH / 2, -depth / 2 + wall / 2);
+    add(id + '-bottom', 'shell', size - 2 * wall, nicheBottom, depth, center, nicheBottom / 2);
+    add(id + '-top', 'shell', size - 2 * wall, h - nicheH - nicheBottom, depth, center, (h + nicheH + nicheBottom) / 2);
+    add(id + '-back', 'wood', size - 2 * wall, nicheH, wall, center, nicheBottom + nicheH / 2, -depth / 2 + wall / 2);
+    for (let i = 1; i <= detail.woodDivisions; i++) {
+      add(id + '-divider-' + i, 'shell', size - 2 * wall, 25, depth - wall, center, nicheBottom + nicheH * i / (detail.woodDivisions + 1), wall / 2);
+    }
   };
   if (glassSides.left) openSide('left', 'shell', left, -w / 2 + left / 2, 0, h);
   else side('left', left, -w / 2 + left / 2, wood === 'left');
@@ -103,6 +125,12 @@ export function calculateGeometry(data: KariConstruction, options: GeometryOptio
   if (glassSides.right) add('glass-right', 'glass', 4, glassH, d.depth - 40, x + d.width / 2 + 3, glassY, bodyZ);
   if (data.tunnel) add('glass-back', 'glass', d.width * 0.85, glassH, 4, x, glassY, front - d.depth - 3);
   if (data.builtInWoodCompartment) add('integrated-wood', 'wood', d.width * 0.85, woodH * 0.8, 5, x, base + t + woodH / 2, front + 3);
-  if (options.shelf) add('shelf', 'shell', w + 100, 50, depth + 160, 0, Math.max(25, base - 25), 80);
+  if (options.shelf) {
+    const leftExtension = detail.shelfSide !== 'right' ? detail.shelfExtension : 0;
+    const rightExtension = detail.shelfSide !== 'left' ? detail.shelfExtension : 0;
+    const shelfY = detail.shelfLevel === 'above' ? upperShelfBase + detail.shelfThickness / 2 : Math.max(detail.shelfThickness / 2, base - detail.shelfThickness / 2);
+    if (detail.shelfLevel === 'above' && shelfY + detail.shelfThickness / 2 > h) warnings.push('Hyllan ovanför elden ryms inte inom omramningens höjd.');
+    add('shelf', 'shell', w + leftExtension + rightExtension, detail.shelfThickness, depth + detail.shelfProjection, (rightExtension - leftExtension) / 2, shelfY, detail.shelfProjection / 2);
+  }
   return { parts, warnings, missing: false, tooSmall: warnings.length > 0, requiredMm };
 }

@@ -83,23 +83,34 @@ function Fire({ glass, tunnel }: {glass: BoxPart; tunnel: boolean}) {
   </group>;
 }
 
-function CameraRig({ options, height, glass, inRoom }: {options: SceneOptions; height: number; glass?: BoxPart; inRoom: boolean}) {
+function CameraRig({ options, height, width, glass, inRoom }: {options: SceneOptions; height: number; width: number; glass?: BoxPart; inRoom: boolean}) {
   const ref = useRef<ComponentRef<typeof OrbitControls>>(null);
+  const lastView = useRef('');
   const { camera, invalidate, size } = useThree();
+  const glassX = glass?.position[0] ?? 0;
+  const glassY = glass?.position[1] ?? height / 2000;
   useEffect(() => {
     const controls = ref.current;
     if (!controls) return;
-    const y = options.camera === 'close' && glass ? glass.position[1] : height / 2000;
-    const distance = Math.max(3.8, height / 1000 * 1.9) * (size.width < 500 ? 1.2 : 1);
-    controls.target.set(0, y, 0);
-    camera.position.set(options.camera === 'angle' ? distance * 0.52 : 0, y + (options.camera === 'angle' ? 0.8 : 0.05), options.camera === 'close' ? 1.7 : distance);
+    const y = options.camera === 'close' ? glassY : height / 2000;
+    const x = options.camera === 'close' ? glassX : 0;
+    const aspect = size.width / Math.max(1,size.height);
+    const distance = Math.max(3, height / 1000 * 1.9, width / 1000 / (2 * Math.tan(21 * Math.PI / 180) * aspect) * 1.2);
+    const view = options.camera + ':' + options.cameraRevision;
+    const direction = camera.position.clone().sub(controls.target).normalize();
+    controls.target.set(x, y, 0);
+    if (lastView.current === view) camera.position.copy(controls.target).addScaledVector(direction, options.camera === 'close' ? 1.7 : distance);
+    else camera.position.set(x + (options.camera === 'angle' ? distance * 0.52 : 0), y + (options.camera === 'angle' ? 0.8 : 0.05), options.camera === 'close' ? 1.7 : distance);
+    lastView.current = view;
     camera.lookAt(controls.target); controls.update(); invalidate();
-  }, [options.camera, options.cameraRevision, height, glass, camera, invalidate, size.width]);
-  return <OrbitControls ref={ref} makeDefault enablePan={false} minDistance={1.1} maxDistance={10} minPolarAngle={0.35} maxPolarAngle={Math.PI / 2 - 0.015} minAzimuthAngle={inRoom ? 0 : -Math.PI / 2.5} maxAzimuthAngle={Math.PI / 2.5}/>;
+  }, [options.camera, options.cameraRevision, height, width, glassX, glassY, camera, invalidate, size.width, size.height]);
+  return <OrbitControls ref={ref} makeDefault enablePan={false} minDistance={1.1} maxDistance={20} minPolarAngle={0.35} maxPolarAngle={Math.PI / 2 - 0.015} minAzimuthAngle={inRoom ? 0 : -Math.PI / 2.5} maxAzimuthAngle={Math.PI / 2.5}/>;
 }
 
 function SceneContent({ data, config, options, room }: {data: KariConstruction; config: EnclosureConfig; options: SceneOptions; room?: RoomPreview}) {
-  const layout = room ? roomLayout(room.area, room.placement, config.width, config.depth) : null;
+  const fullWidth = config.width + (config.shelf ? config.shelfExtension * (config.shelfSide === 'both' ? 2 : 1) : 0);
+  const fullDepth = config.depth + (config.shelf ? config.shelfProjection : 0);
+  const layout = room ? roomLayout(room.area, room.placement, fullWidth, fullDepth) : null;
   const geometry = useMemo(() => calculateGeometry(data, config), [data, config]);
   const textures = useSurfaceTextures(config.finish);
   const parts = useMemo(() => geometry.parts.flatMap(splitShell), [geometry]);
@@ -133,7 +144,7 @@ function SceneContent({ data, config, options, room }: {data: KariConstruction; 
     </> : <><mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.015, 0]}><planeGeometry args={[20, 20]}/><meshStandardMaterial color="#73746e" roughness={1}/></mesh>
     <mesh position={[0, 3, -1.5]}><boxGeometry args={[20, 6, 0.05]}/><meshStandardMaterial color="#93948c" roughness={1}/></mesh></>}
     <ContactShadows key={JSON.stringify(config)} position={[0, -0.005, 0]} opacity={0.5} scale={10} blur={2.5} far={4} resolution={256} frames={1}/>
-    <CameraRig options={options} height={config.height} glass={glass} inRoom={Boolean(room)}/>
+    <CameraRig options={options} height={config.height} width={fullWidth} glass={glass} inRoom={Boolean(room)}/>
   </>;
 }
 export default function EnclosureScene({ data, config, options, room }: {data: KariConstruction; config: EnclosureConfig; options: SceneOptions; room?: RoomPreview}) {

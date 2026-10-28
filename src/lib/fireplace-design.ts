@@ -20,7 +20,7 @@ export type FireplaceDesign = {
 };
 type Model = { id:string; slug:string; variantIds:string[] };
 type Variant = { id:string; modelId:string; configurations?: {id:string}[] };
-export type DesignQuery = { [K in 'modell'|'variant'|'steg'|'form'|'anslutning'|'kvm'|'dim'|'mat'|'kul'|'hy'|'ved'|'placering'|'konfiguration'|'format'|'glas']?: string|string[] };
+export type DesignQuery = { [K in 'modell'|'variant'|'steg'|'form'|'anslutning'|'kvm'|'dim'|'mat'|'kul'|'hy'|'ved'|'placering'|'konfiguration'|'format'|'glas'|'profil'|'hyllm'|'vedm']?: string|string[] };
 export const designSteps: {id:DesignStep;label:string}[]=[
 {id:'insats',label:'Välj insats'},{id:'utforande',label:'Välj utförande'},{id:'rum',label:'Placera i rum'}
 ];
@@ -38,7 +38,7 @@ export function resolveDesign(query:DesignQuery,models:Model[],variants:Variant[
   const requestedStep = query.steg === 'omramning' ? 'utforande' : query.steg;
   const step=insert&&designSteps.some(s=>s.id===requestedStep)?requestedStep as DesignStep:'insats';
   const visual: VisualPreferences = {};
-  for(const key of ['dim','mat','kul','hy','ved','glas'] as const) { const value=query[key]; if(insert && typeof value==='string' && value.length>0 && value.length<=64) visual[key]=value; }
+  for(const key of ['dim','mat','kul','hy','ved','glas','profil','hyllm','vedm'] as const) { const value=query[key]; if(insert && typeof value==='string' && value.length>0 && value.length<=64) visual[key]=value; }
   const shape=query.form==='fyrkantig'||query.form==='rektangular'?query.form:null;
   const flueConnection=typeof query.anslutning==='string' && Object.hasOwn(connectionLabels,query.anslutning)?query.anslutning as FlueConnection:null;
   const placement=typeof query.placering==='string' && Object.hasOwn(placementLabels,query.placering)?query.placering as Placement:undefined;

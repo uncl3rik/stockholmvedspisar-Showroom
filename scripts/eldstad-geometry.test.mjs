@@ -19,9 +19,10 @@ function load(file) {
 }
 const { kariConstruction } = load('src/data/kari-construction.ts');
 const { calculateGeometry, defaultDimensions, dimensionLimits } = load('src/lib/eldstad/geometry.ts');
-const { readEnclosure, visualPreferences } = load('src/lib/eldstad/configuration.ts');
+const { readEnclosure, visualPreferences, updateEnclosure } = load('src/lib/eldstad/configuration.ts');
 const { faceRepeats, splitShell, hollowInsert } = load('src/lib/eldstad/surfaces.ts');
 const { encodeDraft, decodeDraft, draftContactHref } = load('src/lib/design-draft.ts');
+const { detailDefaults } = load('src/lib/eldstad/details.ts');
 const { roomLayout, powerGuidance } = load('src/lib/eldstad/room.ts');
 const { conturaConstruction, conturaModel, conturaVariant } = load('src/data/contura-i8.ts');
 const { i1Construction, i1Model, i1Variant } = load('src/data/contura-i1.ts');
@@ -29,6 +30,35 @@ const { designHref, resolveDesign, designPreferences } = load('src/lib/fireplace
 const normal = kariConstruction['variant-retailer-5080'];
 const options = data => ({ ...defaultDimensions(data), shelf: false, wood: 'none' });
 const plain = value => JSON.parse(JSON.stringify(value));
+
+test('custom modules fit, retain exact niche dimensions and survive contact handoff', () => {
+  for (const data of [conturaConstruction,i1Construction]) for (const wood of ['left','right']) for (const shelfLevel of ['above','below']) {
+    const {config,adjusted} = updateEnclosure(data,readEnclosure(data,{}),{width:900,height:1200,profile:'stepped',shoulderInset:200,wood,woodWidth:500,woodHeight:1000,woodDivisions:3,shelf:true,shelfLevel,shelfExtension:300,shelfProjection:200,shelfThickness:80});
+    assert.ok(adjusted.includes('width'));
+    assert.ok(adjusted.includes('height'));
+    const geometry=calculateGeometry(data,config);
+    assert.equal(geometry.tooSmall,false);
+    const rear=geometry.parts.find(p=>p.id===wood+'-back');
+    assert.deepEqual(plain(rear.size.slice(0,2)),[.5,1]);
+    assert.equal(geometry.parts.filter(p=>p.id.startsWith(wood+'-divider-')).length,3);
+    const shelf=geometry.parts.find(p=>p.id==='shelf');
+    assert.ok(shelfLevel==='above'?shelf.position[1]-shelf.size[1]/2>=rear.position[1]+.5-1e-9:shelf.position[1]+shelf.size[1]/2<=rear.position[1]-.5+1e-9);
+    assert.ok(geometry.parts.every(p=>p.size.every(n=>Number.isFinite(n)&&n>0)&&p.position.every(Number.isFinite)));
+    const decoded=decodeDraft(encodeDraft('liggande','variant-contura-i8',visualPreferences(config)));
+    assert.deepEqual(plain(readEnclosure(data,decoded)),plain(config));
+  }
+});
+
+test('stepped profile narrows the roof without changing the insert', () => {
+  const base=readEnclosure(conturaConstruction,{});
+  const config=updateEnclosure(conturaConstruction,base,{profile:'stepped',shoulderInset:200}).config;
+  const parts=calculateGeometry(conturaConstruction,config).parts;
+  assert.deepEqual(plain(parts.find(p=>p.id==='insert')),plain(calculateGeometry(conturaConstruction,base).parts.find(p=>p.id==='insert')));
+  const roof=parts.filter(p=>p.kind==='shell'&&p.position[1]+p.size[1]/2>2.199);
+  assert.ok(roof.length>0);
+  assert.ok(roof.every(p=>Math.abs(p.position[0])+p.size[0]/2<=(base.width-400)/2000+1e-9));
+  for(const length of [13,14]) assert.ok(decodeDraft(JSON.stringify(JSON.parse(encodeDraft('liggande','variant-contura-i8',{})).slice(0,length))));
+});
 
 test('glazing choices open the selected sides through body, lining and shell', () => {
   for (const glazing of ['front','left','right','both']) {
@@ -79,7 +109,7 @@ test('wood compartments cannot obscure selected side glass and old compact draft
     assert.equal(readEnclosure(conturaConstruction,{glas:'both',ved:side}).wood,'none');
     assert.equal(readEnclosure(conturaConstruction,{glas:'front',ved:side}).wood,side);
   }
-  const legacy = JSON.parse(encodeDraft('contura-i8',conturaVariant.id,{})).slice(0,-1);
+  const legacy = JSON.parse(encodeDraft('contura-i8',conturaVariant.id,{})).slice(0,13);
   const result = resolveDesign(decodeDraft(JSON.stringify(legacy)),[conturaModel],[conturaVariant]);
   assert.equal(result.design.insert.variantId,conturaVariant.id);
   assert.equal(readEnclosure(conturaConstruction,designPreferences(result.design)).glazing,'front');
@@ -262,7 +292,7 @@ test('wood niches mirror; W variants suppress extra niches; only tunnels have re
   assert.ok(calculateGeometry(tunnel, options(tunnel)).parts.some(p => p.id === 'glass-back'));
 });
 test('every visual selection survives URL round-trip and step 03 links', () => {
-  const chosen = { glazing: 'front', width: 1400, height: 2400, depth: 650, plinth: 250, shelf: true, wood: 'right', finish: 'stal', color: 'sand' };
+  const chosen = { ...plain(detailDefaults), glazing: 'front', width: 1400, height: 2400, depth: 650, plinth: 250, shelf: true, wood: 'right', finish: 'stal', color: 'sand' };
   const prefs = { ...visualPreferences(chosen), anslutning: 'bak', kvm: '35.5' };
   const query = Object.fromEntries(new URL(designHref('rum', 'kari', 'v', prefs), 'https://example.com').searchParams);
   const result = resolveDesign(query, [{ id: 'kari', slug: 'kari', variantIds: ['v'] }], [{ id: 'v', modelId: 'kari' }]);
