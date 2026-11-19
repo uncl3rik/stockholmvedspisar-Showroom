@@ -71,3 +71,30 @@
   .enclosure-stage .scene-toolbar .editor-choices{gap:4px}
   .enclosure-stage .scene-toolbar button{padding:6px 8px;font-size:.65rem;min-height:36px}
 }
+
+.design-options {
+  border-bottom: 1px solid var(--line);
+}
+.design-options summary {
+  cursor: pointer;
+  padding: 16px 0;
+  font-weight: 700;
+}
+.design-options[open] {
+  padding-bottom: 18px;
+}
+.enclosure-panel .design-options fieldset {
+  margin-top: 10px;
+}
+.enclosure-panel .design-options fieldset + fieldset {
+  margin-top: 20px;
+}
+.enclosure-panel > fieldset:first-of-type {
+  margin-top: 0;
+}
+.measure-feedback:not(:empty) {
+  margin: 12px 0;
+}
+.enclosure-panel > .enclosure-notice:last-child {
+  margin-top: 20px;
+}

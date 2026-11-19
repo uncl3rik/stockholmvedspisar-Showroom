@@ -14,7 +14,7 @@ export function draftFromHref(href: unknown, savedAt = new Date().toISOString())
   const prefs = designPreferences(design);
   const config = readEnclosure(variant.construction, prefs);
   const normalized = {...prefs,...(config ? visualPreferences(config) : {})};
-  const summary = [variant.name, 'Omramning: '+(config ? enclosureSummary(config) : 'Mått under verifiering'), 'Placering: '+(prefs.placering ? placementLabels[prefs.placering] : 'Inte vald'), 'Rumsyta: '+(prefs.kvm ? prefs.kvm+' m²' : 'Inte angiven'), 'Skorstensanslutning: '+(prefs.anslutning ? connectionLabels[prefs.anslutning] : 'Inte vald'), ...(prefs.konfiguration ? ['Produktutförande: '+prefs.konfiguration] : [])].join('\n');
+  const summary = [variant.name, 'Omramning: '+(config ? enclosureSummary(config) : 'Mått under verifiering'), 'Placering: '+(prefs.placering ? placementLabels[prefs.placering] : 'Inte vald'), 'Rumsyta: '+(prefs.kvm ? prefs.kvm+' m²' : 'Inte angiven'), ...(prefs.anslutning ? ['Skorstensanslutning: '+connectionLabels[prefs.anslutning]] : []), ...(prefs.konfiguration ? ['Produktutförande: '+prefs.konfiguration] : [])].join('\n');
   return {href:designHref('rum',model.slug,variant.id,normalized),title:variant.name,summary,savedAt};
 }
 export function parseSavedDrafts(raw: string | null): SavedDraft[] {

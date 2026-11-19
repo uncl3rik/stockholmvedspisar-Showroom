@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { Arrow, ShowroomImage } from '@/components/showroom';
 import { insertModels, insertVariants, insertPreview } from '@/data/insert-catalog';
-import { designHref, designSteps, designPreferences, resolveDesign, placementLabels, connectionLabels, type DesignQuery } from '@/lib/fireplace-design';
+import { designHref, designSteps, designPreferences, resolveDesign, placementLabels, type DesignQuery } from '@/lib/fireplace-design';
 import { enclosureSummary, readEnclosure } from '@/lib/eldstad/configuration';
 import RoomArea from '@/components/room-area';
 import EnclosureEditor from '@/components/eldstad/enclosure-editor';
@@ -41,7 +41,6 @@ export default async function Page({ searchParams }: { searchParams: Promise<Des
       <div className="design-stage-actions">{index>0&&<Link className="line-link" href={href('utforande')}>Tillbaka</Link>}{step==='insats'?selected?<Link className="button dark" href={href('utforande')}>Till utförande <Arrow/></Link>:<button className="button dark" disabled>Välj en insats för att fortsätta</button>:<Link className="line-link" href={href('insats')}>Till ditt insatsval <Arrow/></Link>}</div>
     </section><aside className="design-summary" aria-label="Ditt val"><p className="eyebrow">DITT UTKAST</p>{selected&&selectedVariant?<><ShowroomImage assetId={insertPreview(selected,selectedVariant)} sizes="(max-width:760px) 90vw, 260px"/><h3>{selected.name}</h3><p>{selectedVariant.name}</p><Link href={href('insats')} className="line-link">Byt insats <Arrow/></Link></>:<p>Ingen insats vald ännu.</p>}<dl>
       <div><dt>Omramning</dt><dd>{visualConfig?enclosureSummary(visualConfig):design.enclosure?.shape==='fyrkantig'?'Fyrkantig':design.enclosure?.shape==='rektangular'?'Rektangulär':'Inte vald'}</dd></div>
-      <div><dt>Skorstensanslutning</dt><dd>{design.enclosure?.flueConnection?connectionLabels[design.enclosure.flueConnection]:'Inte vald'}</dd></div>
       <div><dt>Rumsyta</dt><dd>{design.room?.areaM2?design.room.areaM2.toLocaleString('sv-SE')+' m²':'Inte angiven'}</dd></div><div><dt>Placering</dt><dd>{design.room?.placementKind?placementLabels[design.room.placementKind]:'Inte vald'}</dd></div>
     </dl><p className="quiet">Dina val beskriver önskat utförande. Konstruktion och anslutning behöver verifieras för vald insats.</p></aside></div>
   </div>;

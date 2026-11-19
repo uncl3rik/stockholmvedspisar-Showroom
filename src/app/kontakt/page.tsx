@@ -25,7 +25,7 @@ export default async function Page({searchParams}:{searchParams:Promise<DesignQu
     ['Omramning',enclosure?enclosureSummary(enclosure):'Mått under verifiering'],
     ['Placering',normalized.placering?placementLabels[normalized.placering]:'Inte vald'],
     ['Rumsyta',normalized.kvm?normalized.kvm.replace('.',',')+' m²':'Inte angiven'],
-    ['Skorstensanslutning',normalized.anslutning?connectionLabels[normalized.anslutning]:'Inte vald'],
+    ...(normalized.anslutning ? [['Skorstensanslutning', connectionLabels[normalized.anslutning]]] : []),
   ] : [];
   const productContext=[model?model.name:null,variant?variant.name:null,variant?configurationLabel(variant,configuration):null].filter(Boolean).join(' · ');
   const context=[productContext,...summary.map(([label,value])=>`${label}: ${value}`),draftHref?'Utkast: '+draftHref:null].filter(Boolean).join('\n');
